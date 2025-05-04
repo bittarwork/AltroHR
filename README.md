@@ -64,13 +64,6 @@ A modern role-based employee management system with attendance tracking, leave r
 - **HR:** Manage leaves, view reports, add performance notes
 - **Admin:** Full access to all system features
 
-## 📅 Development Timeline
-
-- Phase 1: Initial Study (Nov 5 – Nov 12, 2024)
-- Phase 2: System Development (Nov 13 – Dec 31, 2024)
-- Phase 3: Testing & Debugging (Jan 1 – Jan 15, 2025)
-- Phase 4: Final Report & Submission (Jan 16 – Jan 31, 2025)
-
 ## 📎 License
 
 This project is licensed under the MIT License.
