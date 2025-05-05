@@ -7,7 +7,7 @@ import {
   FaMobileAlt,
   FaLock,
 } from "react-icons/fa";
-import { useTheme } from "../contexts/ThemeContext";
+import { useTheme } from "../../contexts/ThemeContext";
 
 const reasons = [
   {

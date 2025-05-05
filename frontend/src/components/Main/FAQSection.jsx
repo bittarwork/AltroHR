@@ -2,7 +2,7 @@
 import React from "react";
 import { Disclosure } from "@headlessui/react";
 import { FaChevronDown } from "react-icons/fa";
-import { useTheme } from "../contexts/ThemeContext";
+import { useTheme } from "../../contexts/ThemeContext";
 
 const faqs = [
   {

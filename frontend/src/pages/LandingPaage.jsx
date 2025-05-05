@@ -1,12 +1,12 @@
 // src/pages/LandingPage.jsx
 import React from "react";
 import Navbar from "../components/Navbar";
-import HeroSection from "../components/HeroSection";
-import FeaturesSection from "../components/FeaturesSection";
-import UserRolesSection from "../components/UserRolesSection";
-import WhyUsSection from "../components/WhyUsSection";
-import FAQSection from "../components/FAQSection";
-import CallToActionSection from "../components/CallToActionSection";
+import HeroSection from "../components/Main/HeroSection";
+import FeaturesSection from "../components/Main/FeaturesSection";
+import UserRolesSection from "../components/Main/UserRolesSection";
+import WhyUsSection from "../components/Main/WhyUsSection";
+import FAQSection from "../components/Main/FAQSection";
+import CallToActionSection from "../components/Main/CallToActionSection";
 import Footer from "../components/Footer";
 const LandingPage = () => {
   return (

@@ -1,7 +1,7 @@
 // src/components/FeaturesSection.jsx
 import React from "react";
 import { FaClock, FaUserCheck, FaFileAlt, FaCalendarAlt } from "react-icons/fa";
-import { useTheme } from "../contexts/ThemeContext";
+import { useTheme } from "../../contexts/ThemeContext";
 
 const features = [
   {
