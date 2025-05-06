@@ -7,17 +7,19 @@ import { useTheme } from "../../contexts/ThemeContext";
 import { useAuth } from "../../contexts/AuthContext";
 import AddUserModal from "../../modals/AddUserModal";
 
+// ✅ خيارات الفلاتر - الأدوار
 const roleOptions = [
-  { value: "", label: "All Roles" },
-  { value: "admin", label: "Admin" },
-  { value: "hr", label: "HR" },
-  { value: "employee", label: "Employee" },
+  { value: "", label: "جميع الأدوار" },
+  { value: "admin", label: "مدير" },
+  { value: "hr", label: "الموارد البشرية" },
+  { value: "employee", label: "موظف" },
 ];
 
+// ✅ خيارات الفلاتر - الحالة
 const statusOptions = [
-  { value: "", label: "All Statuses" },
-  { value: "active", label: "Active" },
-  { value: "inactive", label: "Inactive" },
+  { value: "", label: "كل الحالات" },
+  { value: "active", label: "نشط" },
+  { value: "inactive", label: "غير نشط" },
 ];
 
 const UsersToolbar = ({
@@ -38,6 +40,7 @@ const UsersToolbar = ({
   const { user } = useAuth();
   const token = user?.token;
 
+  // ✅ تحميل الأقسام من الخادم
   useEffect(() => {
     const fetchDepartments = async () => {
       try {
@@ -49,7 +52,7 @@ const UsersToolbar = ({
         );
 
         const options = [
-          { value: "", label: "All Departments" },
+          { value: "", label: "كل الأقسام" },
           ...res.data.map((dep) => ({
             value: dep._id,
             label: dep.name,
@@ -57,13 +60,14 @@ const UsersToolbar = ({
         ];
         setDepartments(options);
       } catch (err) {
-        console.error("Failed to fetch departments", err);
+        console.error("فشل في تحميل الأقسام", err);
       }
     };
 
     if (token) fetchDepartments();
   }, [token]);
 
+  // ✅ تأخير تنفيذ البحث لتقليل عدد الطلبات
   useEffect(() => {
     const delayDebounce = setTimeout(() => {
       onSearch(searchTerm.trim());
@@ -71,7 +75,7 @@ const UsersToolbar = ({
     return () => clearTimeout(delayDebounce);
   }, [searchTerm]);
 
-  // ✅ تنسيق خاص لـ react-select حسب الوضع الليلي
+  // ✅ تنسيق مخصص للقوائم المنسدلة حسب الوضع الليلي
   const selectStyles = {
     control: (base, state) => ({
       ...base,
@@ -99,12 +103,12 @@ const UsersToolbar = ({
     <section className="w-full flex flex-col md:flex-row md:items-center justify-between gap-4 mb-6">
       {/* 🔍 الفلاتر */}
       <div className="flex flex-wrap gap-3 items-center w-full md:w-auto">
-        {/* Search input */}
+        {/* مربع البحث */}
         <div className="relative">
           <FiSearch className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 dark:text-gray-500" />
           <input
             type="text"
-            placeholder="Search by name or email"
+            placeholder="ابحث بالاسم أو البريد"
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
             className={`pl-10 pr-4 py-2 rounded-md border w-64 shadow-sm transition-all duration-200
@@ -117,10 +121,10 @@ const UsersToolbar = ({
           />
         </div>
 
-        {/* Role filter */}
+        {/* فلتر الدور */}
         <Select
           options={roleOptions}
-          placeholder="Role"
+          placeholder="الدور"
           className="w-40 text-sm"
           styles={selectStyles}
           isClearable
@@ -131,10 +135,10 @@ const UsersToolbar = ({
           value={selectedRole}
         />
 
-        {/* Department filter */}
+        {/* فلتر القسم */}
         <Select
           options={departments}
-          placeholder="Department"
+          placeholder="القسم"
           className="w-48 text-sm"
           styles={selectStyles}
           isClearable
@@ -145,10 +149,10 @@ const UsersToolbar = ({
           value={selectedDepartment}
         />
 
-        {/* Status filter */}
+        {/* فلتر الحالة */}
         <Select
           options={statusOptions}
-          placeholder="Status"
+          placeholder="الحالة"
           className="w-40 text-sm"
           styles={selectStyles}
           isClearable
@@ -160,20 +164,23 @@ const UsersToolbar = ({
         />
       </div>
 
-      {/* ➕ زر إضافة مستخدم */}
+      {/* ➕ زر إضافة مستخدم جديد */}
       <button
         onClick={() => setShowAddModal(true)}
         className="flex items-center justify-center gap-2 bg-indigo-600 hover:bg-indigo-700 
                    text-white px-5 py-2 rounded-md shadow-sm transition-all duration-200"
       >
         <FaUserPlus className="text-base" />
-        <span className="hidden sm:inline-block font-medium">Add User</span>
+        <span className="hidden sm:inline-block font-medium">إضافة مستخدم</span>
       </button>
+
+      {/* نافذة إضافة المستخدم */}
       <AddUserModal
         isOpen={showAddModal}
         onClose={() => setShowAddModal(false)}
         onSuccess={() => {
-          // إعادة تحميل المستخدمين أو تحديث الجدول حسب الحاجة
+          onAddUser(); // يتم تفعيل إعادة التحميل بعد نجاح الإضافة
+          setShowAddModal(false); // إغلاق المودال
         }}
       />
     </section>

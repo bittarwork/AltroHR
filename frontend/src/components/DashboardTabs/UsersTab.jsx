@@ -12,17 +12,15 @@ const UsersTab = () => {
     department: "",
     status: "",
   });
+  const [reloadUsers, setReloadUsers] = useState(false);
 
-  // ✅ دوال التحكم الأساسية
-  const handleViewUser = (user) => console.log("View", user);
-  const handleEditUser = (user) => console.log("Edit", user);
-  const handleDeleteUser = (userId) => console.log("Delete", userId);
-  const handleToggleActive = (userId, isActive) =>
-    console.log("Toggle Active", userId, isActive);
+  const triggerReloadUsers = () => {
+    setReloadUsers((prev) => !prev); // يسبب إعادة تحميل المستخدمين
+  };
 
   return (
     <section
-      className={`min-h-screen px-4 py-6 sm:px-6 md:px-10 transition-colors duration-300 
+      className={`px-4 py-6 sm:px-6 md:px-10 transition-colors duration-300 
       ${
         darkMode
           ? "bg-gradient-to-br from-gray-900 to-gray-800"
@@ -30,16 +28,15 @@ const UsersTab = () => {
       }`}
     >
       {/* العنوان والوصف */}
-      <header className="mb-8">
-        <h1 className="text-3xl font-bold mb-1">👥 User Management</h1>
+      <header className="mb-8 text-center">
+        <h1 className="text-3xl font-bold mb-1">👥 إدارة المستخدمين</h1>
         <p className="text-sm text-gray-500 dark:text-gray-400">
-          Manage users, filter by roles or departments, and control status
-          easily.
+          قم بإدارة المستخدمين، الفلترة حسب الدور أو القسم، والتحكم بالحالة
+          بسهولة.
         </p>
       </header>
 
-      {/* شريط التحكم */}
-
+      {/* شريط الأدوات */}
       <UsersToolbar
         onSearch={(val) => setFilters((prev) => ({ ...prev, search: val }))}
         onRoleFilter={(val) => setFilters((prev) => ({ ...prev, role: val }))}
@@ -49,17 +46,11 @@ const UsersTab = () => {
         onStatusFilter={(val) =>
           setFilters((prev) => ({ ...prev, status: val }))
         }
-        onAddUser={() => console.log("Open Add Modal")}
+        onAddUser={triggerReloadUsers}
       />
 
       {/* جدول المستخدمين */}
-      <UsersTable
-        filters={filters}
-        onViewUser={handleViewUser}
-        onEditUser={handleEditUser}
-        onDeleteUser={handleDeleteUser}
-        onToggleActive={handleToggleActive}
-      />
+      <UsersTable filters={filters} reloadTrigger={reloadUsers} />
     </section>
   );
 };

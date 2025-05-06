@@ -20,29 +20,15 @@ const salaryTypes = [
   { value: "hourly", label: "بالساعة (مرن)" },
 ];
 
-const AddUserModal = ({ isOpen, onClose, onSuccess }) => {
+const EditUserModal = ({ userId, isOpen, onClose, onSuccess }) => {
   const { darkMode } = useTheme();
   const { user } = useAuth();
   const token = user?.token;
 
-  const [form, setForm] = useState({
-    name: "",
-    email: "",
-    password: "",
-    role: null,
-    department: null,
-    position: "",
-    hireDate: new Date(),
-    salaryType: null,
-    baseSalary: "",
-    hourlyRate: "",
-    overtimeRate: "",
-    workHoursPerDay: "",
-  });
-
+  const [form, setForm] = useState(null);
   const [departments, setDepartments] = useState([]);
+  const [loading, setLoading] = useState(true);
 
-  // تنسيقات الواجهة للقوائم المنسدلة
   const selectStyles = {
     control: (base, state) => ({
       ...base,
@@ -65,7 +51,48 @@ const AddUserModal = ({ isOpen, onClose, onSuccess }) => {
     }),
   };
 
-  // تحميل الأقسام من السيرفر
+  // جلب بيانات المستخدم
+  useEffect(() => {
+    const fetchUser = async () => {
+      setLoading(true);
+      try {
+        const res = await axios.get(
+          `${import.meta.env.VITE_API_URL}/api/user/${userId}`,
+          {
+            headers: { Authorization: `Bearer ${token}` },
+          }
+        );
+
+        const userData = res.data;
+        setForm({
+          name: userData.name,
+          email: userData.email,
+          position: userData.position || "",
+          role: roleOptions.find((r) => r.value === userData.role),
+          department: userData.department
+            ? {
+                value: userData.department._id,
+                label: userData.department.name,
+              }
+            : null,
+          hireDate: new Date(userData.hireDate),
+          salaryType: salaryTypes.find((s) => s.value === userData.salaryType),
+          baseSalary: userData.baseSalary || "",
+          hourlyRate: userData.hourlyRate || "",
+          overtimeRate: userData.overtimeRate || "",
+          workHoursPerDay: userData.workHoursPerDay || "",
+        });
+      } catch (err) {
+        toast.error("فشل في جلب بيانات المستخدم");
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    if (userId && token) fetchUser();
+  }, [userId, token]);
+
+  // جلب الأقسام
   useEffect(() => {
     const fetchDepartments = async () => {
       try {
@@ -80,11 +107,14 @@ const AddUserModal = ({ isOpen, onClose, onSuccess }) => {
         toast.error("فشل في تحميل الأقسام");
       }
     };
+
     if (token) fetchDepartments();
   }, [token]);
 
   // تنظيف الحقول بناءً على نوع الراتب
   useEffect(() => {
+    if (!form) return;
+
     if (form.salaryType?.value === "monthly") {
       setForm((prev) => ({
         ...prev,
@@ -98,12 +128,11 @@ const AddUserModal = ({ isOpen, onClose, onSuccess }) => {
         baseSalary: "",
       }));
     }
-  }, [form.salaryType]);
+  }, [form?.salaryType]);
 
   const handleChange = (e) =>
     setForm({ ...form, [e.target.name]: e.target.value });
 
-  // إرسال النموذج
   const handleSubmit = async (e) => {
     e.preventDefault();
     try {
@@ -115,29 +144,34 @@ const AddUserModal = ({ isOpen, onClose, onSuccess }) => {
         hireDate: form.hireDate,
       };
 
-      await axios.post(`${import.meta.env.VITE_API_URL}/api/user`, payload, {
-        headers: { Authorization: `Bearer ${token}` },
-      });
+      await axios.put(
+        `${import.meta.env.VITE_API_URL}/api/user/${userId}`,
+        payload,
+        {
+          headers: { Authorization: `Bearer ${token}` },
+        }
+      );
 
-      toast.success("تم إنشاء المستخدم بنجاح");
+      toast.success("تم تعديل بيانات المستخدم بنجاح");
       onSuccess?.();
       onClose();
     } catch (err) {
-      toast.error(err.response?.data?.message || "فشل في إنشاء المستخدم");
+      toast.error(err.response?.data?.message || "فشل في تعديل المستخدم");
     }
   };
 
-  if (!isOpen) return null;
+  if (!isOpen || loading || !form) return null;
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center backdrop-blur-sm bg-black/40">
       <div
-        className={`w-full max-w-3xl overflow-auto max-h-96 p-6 rounded-xl shadow-xl transform transition-all duration-300 scale-100
+        className={`w-full max-w-3xl overflow-auto max-h-[90vh] p-6 rounded-xl shadow-xl transition-all duration-300
         ${darkMode ? "bg-gray-900 text-white" : "bg-white text-gray-800"}`}
       >
-        {/* العنوان العلوي */}
         <div className="flex justify-between items-center mb-6">
-          <h2 className="text-xl font-semibold">إضافة مستخدم جديد</h2>
+          <h2 className="text-xl font-semibold text-indigo-600">
+            تعديل معلومات المستخدم
+          </h2>
           <button
             onClick={onClose}
             className="text-red-500 text-2xl font-bold hover:text-red-600 rounded-full px-2"
@@ -148,7 +182,7 @@ const AddUserModal = ({ isOpen, onClose, onSuccess }) => {
         </div>
 
         <form onSubmit={handleSubmit} className="space-y-6">
-          {/* ✅ القسم الأول: معلومات الحساب */}
+          {/* الحساب */}
           <fieldset className="grid grid-cols-1 md:grid-cols-2 gap-5 border border-gray-300 dark:border-gray-700 p-4 rounded-md">
             <legend className="text-lg font-semibold mb-2 text-indigo-600">
               معلومات الحساب
@@ -163,7 +197,6 @@ const AddUserModal = ({ isOpen, onClose, onSuccess }) => {
                 onChange={handleChange}
                 required
                 className="form-input w-full"
-                placeholder="مثال: محمد أحمد"
               />
             </div>
 
@@ -178,42 +211,24 @@ const AddUserModal = ({ isOpen, onClose, onSuccess }) => {
                 onChange={handleChange}
                 required
                 className="form-input w-full"
-                placeholder="مثال: example@email.com"
               />
-            </div>
-
-            <div>
-              <label className="block mb-1 font-medium">كلمة المرور</label>
-              <input
-                type="password"
-                name="password"
-                value={form.password}
-                onChange={handleChange}
-                required
-                className="form-input w-full"
-                placeholder="••••••••"
-              />
-              <small className="text-sm text-gray-500">
-                يجب أن تتكون من 6 أحرف على الأقل
-              </small>
             </div>
           </fieldset>
 
-          {/* ✅ القسم الثاني: المعلومات الوظيفية */}
+          {/* الوظيفية */}
           <fieldset className="grid grid-cols-1 md:grid-cols-2 gap-5 border border-gray-300 dark:border-gray-700 p-4 rounded-md">
             <legend className="text-lg font-semibold mb-2 text-indigo-600">
               المعلومات الوظيفية
             </legend>
 
             <div>
-              <label className="block mb-1 font-medium">المسمى الوظيفي</label>
+              <label className="block mb-1 font-medium">المنصب</label>
               <input
                 type="text"
                 name="position"
                 value={form.position}
                 onChange={handleChange}
                 className="form-input w-full"
-                placeholder="مثال: مطور، مدير، محاسب..."
               />
             </div>
 
@@ -245,13 +260,12 @@ const AddUserModal = ({ isOpen, onClose, onSuccess }) => {
                 selected={form.hireDate}
                 onChange={(date) => setForm({ ...form, hireDate: date })}
                 className="form-input w-full"
-                placeholderText="اختر التاريخ"
                 dateFormat="yyyy/MM/dd"
               />
             </div>
           </fieldset>
 
-          {/* ✅ القسم الثالث: تفاصيل الراتب */}
+          {/* الراتب */}
           <fieldset className="grid grid-cols-1 md:grid-cols-2 gap-5 border border-gray-300 dark:border-gray-700 p-4 rounded-md">
             <legend className="text-lg font-semibold mb-2 text-indigo-600">
               تفاصيل الراتب
@@ -278,7 +292,6 @@ const AddUserModal = ({ isOpen, onClose, onSuccess }) => {
                   onChange={handleChange}
                   required
                   className="form-input w-full"
-                  placeholder="مثال: 500000"
                 />
               </div>
             )}
@@ -286,60 +299,54 @@ const AddUserModal = ({ isOpen, onClose, onSuccess }) => {
             {form.salaryType?.value === "hourly" && (
               <>
                 <div>
-                  <label className="block mb-1 font-medium">
-                    الأجر بالساعة
-                  </label>
+                  <label className="block mb-1 font-medium">أجر الساعة</label>
                   <input
                     type="number"
                     name="hourlyRate"
                     value={form.hourlyRate}
                     onChange={handleChange}
-                    required
                     className="form-input w-full"
-                    placeholder="مثال: 3000"
+                    required
                   />
                 </div>
 
                 <div>
                   <label className="block mb-1 font-medium">
-                    أجر الساعات الإضافية
+                    أجر الساعة الإضافية
                   </label>
                   <input
                     type="number"
                     name="overtimeRate"
                     value={form.overtimeRate}
                     onChange={handleChange}
-                    required
                     className="form-input w-full"
-                    placeholder="مثال: 5000"
+                    required
                   />
                 </div>
 
                 <div>
                   <label className="block mb-1 font-medium">
-                    عدد ساعات العمل يوميًا
+                    عدد ساعات العمل
                   </label>
                   <input
                     type="number"
                     name="workHoursPerDay"
                     value={form.workHoursPerDay}
                     onChange={handleChange}
-                    required
                     className="form-input w-full"
-                    placeholder="مثال: 8"
+                    required
                   />
                 </div>
               </>
             )}
           </fieldset>
 
-          {/* ✅ زر الحفظ */}
-          <div className="flex justify-end">
+          <div className="flex justify-end mt-4">
             <button
               type="submit"
-              className="bg-indigo-600 hover:bg-indigo-700 text-white px-8 py-2 rounded-md font-semibold transition"
+              className="bg-indigo-600 hover:bg-indigo-700 text-white px-6 py-2 rounded-md"
             >
-              حفظ المستخدم
+              حفظ التعديلات
             </button>
           </div>
         </form>
@@ -348,4 +355,4 @@ const AddUserModal = ({ isOpen, onClose, onSuccess }) => {
   );
 };
 
-export default AddUserModal;
+export default EditUserModal;
