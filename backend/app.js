@@ -21,7 +21,7 @@ app.use(morgan('dev'));
 
 // API Routes
 app.use('/api/departments', departmentRoutes);
-app.use('/api/user', userRoutes);
+app.use('/api/user/', userRoutes);
 app.use('/api/attendance', attendanceRoutes);
 app.use('/api/leaves', leaveRoutes);
 app.use('/api/salaries', salaryRoutes);

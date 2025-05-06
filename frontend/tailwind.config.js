@@ -3,9 +3,13 @@ module.exports = {
     content: [
         "./src/**/*.{js,jsx,ts,tsx}",
     ],
-    darkMode: 'class', // هذا هو المكان الصحيح
+    darkMode: 'class',
     theme: {
-        extend: {},
+        extend: {
+            fontFamily: {
+                sans: ['Tajawal', 'sans-serif'], // تعيين Tajawal كخط sans الافتراضي
+            },
+        },
     },
     plugins: [],
 };

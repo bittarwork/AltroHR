@@ -146,10 +146,38 @@ const UserController = {
 
     async getAllUsers(req, res) {
         try {
-            const users = await User.find().populate('department');
+            const { q, role, departmentId, isActive } = req.query;
+
+            // بناء شروط البحث
+            const filter = {};
+
+            if (q) {
+                filter.$or = [
+                    { name: { $regex: q, $options: "i" } },
+                    { email: { $regex: q, $options: "i" } },
+                ];
+            }
+
+            if (role) {
+                filter.role = role;
+            }
+
+            if (departmentId) {
+                filter.department = departmentId;
+            }
+
+            if (typeof isActive !== "undefined") {
+                filter.isActive = isActive === "true";
+            }
+
+            const users = await User.find(filter).populate("department");
+
             res.json(users);
         } catch (err) {
-            res.status(500).json({ message: 'Failed to fetch users', error: err.message });
+            res.status(500).json({
+                message: "Failed to fetch users",
+                error: err.message,
+            });
         }
     },
 

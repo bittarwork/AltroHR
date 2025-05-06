@@ -35,7 +35,7 @@ const Navbar = () => {
       <nav
         className={`${
           darkMode ? "bg-gray-900 text-gray-200" : "bg-white text-gray-800"
-        } shadow-md transition-all duration-300 fixed top-0 w-full z-50`}
+        } shadow-md transition-all duration-300 fixed top-0 w-full z-50 font-tajawal`}
         dir="rtl"
       >
         <div className="container mx-auto px-4 py-4 flex items-center justify-between">
