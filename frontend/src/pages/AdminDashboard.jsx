@@ -1,26 +1,23 @@
-// لوحة التحكم الخاصة بالمدير
 import React, { useState } from "react";
 import { useTheme } from "../contexts/ThemeContext";
 import Navbar from "../components/Navbar";
 import Footer from "../components/Footer";
 
-// استيراد التابات (الأقسام)
+// استيراد التابات
 import UsersTab from "../components/DashboardTabs/UsersTab";
 import DepartmentTab from "../components/DashboardTabs/DepartmentTab";
 import Statistics from "../components/DashboardTabs/Statistics";
+
 // ربط أسماء التابات بالمكونات الخاصة بها
 const DashboardTabs = {
   users: UsersTab,
-  department: DepartmentTab, // من الأفضل إبقاء المفاتيح بحروف صغيرة
+  department: DepartmentTab,
+  statistics: Statistics,
 };
 
 const AdminDashboard = () => {
   const { darkMode } = useTheme();
-
-  // التاب النشط حاليًا
   const [activeTab, setActiveTab] = useState("users");
-
-  // تحديد الكومبوننت المناسب بناءً على التاب المختار
   const ActiveTabComponent = DashboardTabs[activeTab];
 
   return (
@@ -28,7 +25,7 @@ const AdminDashboard = () => {
       dir="rtl"
       className={`${
         darkMode ? "bg-gray-900 text-white" : "bg-gray-100 text-gray-900"
-      } min-h-screen flex flex-col mt-17`}
+      } min-h-screen flex flex-col pt-20`}
     >
       {/* الشريط العلوي */}
       <Navbar />
@@ -38,7 +35,7 @@ const AdminDashboard = () => {
         <h1 className="text-3xl font-semibold mb-8">لوحة تحكم المدير</h1>
 
         {/* أزرار التنقل بين التابات */}
-        <nav className="flex space-x-4 bg-white dark:bg-gray-800 p-2 rounded-full shadow-md">
+        <nav className="flex space-x-4 space-x-reverse bg-white dark:bg-gray-800 p-2 rounded-full shadow-md">
           {Object.keys(DashboardTabs).map((tabKey) => (
             <button
               key={tabKey}
@@ -49,11 +46,12 @@ const AdminDashboard = () => {
               }`}
               onClick={() => setActiveTab(tabKey)}
             >
-              {/* تحويل الاسم لعرضه بشكل مقروء */}
               {tabKey === "users"
                 ? "المستخدمون"
                 : tabKey === "department"
                 ? "الأقسام"
+                : tabKey === "statistics"
+                ? "الإحصائيات"
                 : tabKey}
             </button>
           ))}
