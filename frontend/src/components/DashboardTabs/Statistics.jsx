@@ -4,6 +4,7 @@ import { useTheme } from "../../contexts/ThemeContext";
 
 // Components
 import UserStatistics from "../Statistics/UserStatistics";
+import DepartmentStatistics from "../Statistics/DepartmentStatistics";
 
 const StatisticsPage = () => {
   const { darkMode } = useTheme();
@@ -12,11 +13,11 @@ const StatisticsPage = () => {
   return (
     <div
       className={`min-h-screen w-full transition-colors duration-300 
-      ${
-        darkMode
-          ? "bg-gradient-to-br from-gray-900 to-gray-800 text-white"
-          : "bg-gradient-to-br from-slate-100 to-slate-200 text-gray-900"
-      }`}
+        ${
+          darkMode
+            ? "bg-gradient-to-br from-gray-900 to-gray-800 text-white"
+            : "bg-gradient-to-br from-slate-100 to-slate-200 text-gray-900"
+        }`}
       dir="rtl"
     >
       <section className="px-4 py-6 sm:px-6 md:px-10 max-w-7xl mx-auto">
@@ -34,6 +35,13 @@ const StatisticsPage = () => {
             إحصائيات المستخدمين
           </h2>
           <UserStatistics />
+        </section>
+        {/* قسم إحصائيات الأقسام */}
+        <section>
+          <h2 className="text-2xl font-semibold mb-4 border-r-4 pr-4 border-green-500">
+            إحصائيات الأقسام
+          </h2>
+          <DepartmentStatistics />
         </section>
       </section>
     </div>

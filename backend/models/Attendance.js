@@ -17,17 +17,12 @@ const attendanceSchema = new mongoose.Schema({
         type: Date,
     },
     totalWorkedHours: {
-        type: Number, // عدد ساعات العمل المحسوبة في اليوم
+        type: Number,
         default: 0,
     },
     overtimeHours: {
-        type: Number, // الساعات الزائدة عن العمل الرسمي
+        type: Number,
         default: 0,
-    },
-    status: {
-        type: String,
-        enum: ['present', 'absent', 'late', 'on_leave'],
-        default: 'present',
     },
     note: {
         type: String,

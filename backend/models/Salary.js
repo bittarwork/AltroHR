@@ -7,7 +7,7 @@ const salarySchema = new mongoose.Schema({
         required: true,
     },
     month: {
-        type: String, // مثل: "2025-04"
+        type: String,
         required: true,
     },
     totalWorkingHours: {
