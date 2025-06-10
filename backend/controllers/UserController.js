@@ -8,6 +8,9 @@ const MonthlyReport = require('../models/MonthlyReport');
 const Salary = require('../models/Salary');
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
+const path = require('path');
+const fs = require('fs');
+const { deleteOldProfileImage, getImageUrl } = require('../middleware/uploadMiddleware');
 
 // ✅ توليد JWT
 const generateToken = (user) => {
@@ -45,7 +48,14 @@ const UserController = {
         try {
             const user = await User.findById(req.user.id).populate('department');
             if (!user) return res.status(404).json({ message: 'User not found' });
-            res.json(user);
+
+            // التأكد من إرجاع الصورة الشخصية
+            const userProfile = {
+                ...user.toObject(),
+                profileImage: user.profileImage || null
+            };
+
+            res.json(userProfile);
         } catch (err) {
             res.status(500).json({ message: 'Error fetching profile', error: err.message });
         }
@@ -65,6 +75,187 @@ const UserController = {
             res.json({ message: 'Password updated successfully' });
         } catch (err) {
             res.status(500).json({ message: 'Failed to update password', error: err.message });
+        }
+    },
+
+    // تحديث الملف الشخصي (جديد)
+    async updateProfile(req, res) {
+        try {
+            const userId = req.user.id;
+            const { name, email, phone, address } = req.body;
+
+            // التحقق من صحة البيانات
+            if (!name || name.trim().length < 2) {
+                return res.status(400).json({ message: 'Name must be at least 2 characters long' });
+            }
+
+            if (email) {
+                const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+                if (!emailRegex.test(email)) {
+                    return res.status(400).json({ message: 'Invalid email format' });
+                }
+
+                // التحقق من عدم وجود البريد الإلكتروني مع مستخدم آخر
+                const existingUser = await User.findOne({
+                    email: email,
+                    _id: { $ne: userId }
+                });
+                if (existingUser) {
+                    return res.status(400).json({ message: 'Email already exists' });
+                }
+            }
+
+            // تحديث البيانات
+            const updateData = {
+                name: name.trim(),
+                ...(email && { email: email.trim() }),
+                ...(phone && { phone: phone.trim() }),
+                ...(address && { address: address.trim() })
+            };
+
+            const updatedUser = await User.findByIdAndUpdate(
+                userId,
+                updateData,
+                {
+                    new: true,
+                    runValidators: true
+                }
+            ).populate('department');
+
+            if (!updatedUser) {
+                return res.status(404).json({ message: 'User not found' });
+            }
+
+            res.json({
+                message: 'Profile updated successfully',
+                user: updatedUser
+            });
+
+        } catch (err) {
+            console.error('Update profile error:', err);
+
+            if (err.name === 'ValidationError') {
+                const validationErrors = Object.values(err.errors).map(e => e.message);
+                return res.status(400).json({
+                    message: 'Validation failed',
+                    errors: validationErrors
+                });
+            }
+
+            res.status(500).json({
+                message: 'Failed to update profile',
+                error: err.message
+            });
+        }
+    },
+
+    // رفع الصورة الشخصية (جديد)
+    async uploadProfileImage(req, res) {
+        try {
+            console.log('=== Upload Profile Image Controller ===');
+            console.log('User ID:', req.user.id);
+            console.log('File received:', req.file);
+            console.log('Body:', req.body);
+
+            const userId = req.user.id;
+
+            if (!req.file) {
+                console.log('❌ No file received');
+                return res.status(400).json({
+                    message: 'No image file provided',
+                    error: 'NO_FILE'
+                });
+            }
+
+            // الحصول على المستخدم الحالي
+            const user = await User.findById(userId);
+            if (!user) {
+                return res.status(404).json({ message: 'User not found' });
+            }
+
+            // حذف الصورة القديمة إن وجدت
+            if (user.profileImage) {
+                const oldImagePath = path.join(__dirname, '../uploads/profiles', path.basename(user.profileImage));
+                deleteOldProfileImage(oldImagePath);
+            }
+
+            // إنشاء URL للصورة الجديدة
+            const imageUrl = getImageUrl(req, req.file.filename);
+
+            // تحديث بيانات المستخدم
+            user.profileImage = imageUrl;
+            await user.save();
+
+            res.json({
+                message: 'Profile image uploaded successfully',
+                profileImage: imageUrl,
+                user: {
+                    id: user._id,
+                    name: user.name,
+                    email: user.email,
+                    profileImage: imageUrl
+                }
+            });
+
+        } catch (err) {
+            console.error('Upload profile image error:', err);
+
+            // حذف الملف المرفوع في حالة الخطأ
+            if (req.file) {
+                const uploadedFilePath = req.file.path;
+                if (fs.existsSync(uploadedFilePath)) {
+                    fs.unlinkSync(uploadedFilePath);
+                }
+            }
+
+            res.status(500).json({
+                message: 'Failed to upload profile image',
+                error: err.message
+            });
+        }
+    },
+
+    // حذف الصورة الشخصية (جديد)
+    async deleteProfileImage(req, res) {
+        try {
+            const userId = req.user.id;
+
+            const user = await User.findById(userId);
+            if (!user) {
+                return res.status(404).json({ message: 'User not found' });
+            }
+
+            if (!user.profileImage) {
+                return res.status(400).json({
+                    message: 'No profile image to delete'
+                });
+            }
+
+            // حذف الصورة من الخادم
+            const imagePath = path.join(__dirname, '../uploads/profiles', path.basename(user.profileImage));
+            deleteOldProfileImage(imagePath);
+
+            // تحديث بيانات المستخدم
+            user.profileImage = null;
+            user.profileImagePublicId = null;
+            await user.save();
+
+            res.json({
+                message: 'Profile image deleted successfully',
+                user: {
+                    id: user._id,
+                    name: user.name,
+                    email: user.email,
+                    profileImage: null
+                }
+            });
+
+        } catch (err) {
+            console.error('Delete profile image error:', err);
+            res.status(500).json({
+                message: 'Failed to delete profile image',
+                error: err.message
+            });
         }
     },
 
@@ -277,6 +468,95 @@ const UserController = {
         }
     },
 
+    // ============================
+    // 📊 إحصائيات الموظف السريعة (جديد)
+    // ============================
+
+    async getEmployeeQuickStats(req, res) {
+        try {
+            const userId = req.user.id;
+            const currentDate = new Date();
+            const currentMonth = currentDate.getMonth();
+            const currentYear = currentDate.getFullYear();
+
+            // جلب سجل الحضور
+            const attendanceRecords = await Attendance.find({ user: userId });
+
+            // جلب طلبات الإجازة
+            const leaveRequests = await LeaveRequest.find({ user: userId });
+
+            // حساب الإحصائيات
+            const stats = {
+                // إحصائيات الحضور الإجمالية
+                totalWorkDays: attendanceRecords.length,
+                totalWorkHours: attendanceRecords.reduce((sum, record) =>
+                    sum + (record.totalWorkedHours || 0), 0),
+                totalOvertimeHours: attendanceRecords.reduce((sum, record) =>
+                    sum + (record.overtimeHours || 0), 0),
+
+                // إحصائيات الشهر الحالي
+                currentMonthWorkDays: 0,
+                currentMonthWorkHours: 0,
+                currentMonthOvertimeHours: 0,
+
+                // إحصائيات الإجازات
+                totalLeaveRequests: leaveRequests.length,
+                pendingLeaveRequests: leaveRequests.filter(l => l.status === 'pending').length,
+                approvedLeaveRequests: leaveRequests.filter(l => l.status === 'approved').length,
+                rejectedLeaveRequests: leaveRequests.filter(l => l.status === 'rejected').length,
+
+                // إحصائيات إضافية
+                averageWorkHours: 0,
+                thisWeekWorkDays: 0,
+                thisWeekWorkHours: 0
+            };
+
+            // حساب إحصائيات الشهر الحالي
+            const currentMonthRecords = attendanceRecords.filter(record => {
+                const recordDate = new Date(record.date);
+                return recordDate.getMonth() === currentMonth &&
+                    recordDate.getFullYear() === currentYear;
+            });
+
+            stats.currentMonthWorkDays = currentMonthRecords.length;
+            stats.currentMonthWorkHours = currentMonthRecords.reduce((sum, record) =>
+                sum + (record.totalWorkedHours || 0), 0);
+            stats.currentMonthOvertimeHours = currentMonthRecords.reduce((sum, record) =>
+                sum + (record.overtimeHours || 0), 0);
+
+            // حساب إحصائيات الأسبوع الحالي
+            const oneWeekAgo = new Date();
+            oneWeekAgo.setDate(oneWeekAgo.getDate() - 7);
+
+            const thisWeekRecords = attendanceRecords.filter(record => {
+                const recordDate = new Date(record.date);
+                return recordDate >= oneWeekAgo;
+            });
+
+            stats.thisWeekWorkDays = thisWeekRecords.length;
+            stats.thisWeekWorkHours = thisWeekRecords.reduce((sum, record) =>
+                sum + (record.totalWorkedHours || 0), 0);
+
+            // حساب متوسط ساعات العمل
+            if (stats.totalWorkDays > 0) {
+                stats.averageWorkHours = stats.totalWorkHours / stats.totalWorkDays;
+            }
+
+            res.json({
+                success: true,
+                data: stats,
+                lastUpdated: new Date().toISOString()
+            });
+
+        } catch (err) {
+            console.error('Error getting employee quick stats:', err);
+            res.status(500).json({
+                success: false,
+                message: 'Failed to get employee statistics',
+                error: err.message
+            });
+        }
+    },
 
 };
 

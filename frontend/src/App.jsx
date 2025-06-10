@@ -9,6 +9,8 @@ import { useAuth } from "./contexts/AuthContext";
 
 import LandingPage from "./pages/LandingPaage";
 import LoginPage from "./pages/auth/LoginPage";
+import ForgotPasswordPage from "./pages/auth/ForgotPasswordPage";
+import RegisterPage from "./pages/auth/RegisterPage";
 import AdminDashboard from "./pages/AdminDashboard";
 import EmployeeDashboard from "./pages/EmployeeDashboard";
 import TechnicianDashboard from "./pages/TechnicianDashboard";
@@ -37,6 +39,12 @@ const App = () => {
 
         {/* صفحة تسجيل الدخول */}
         <Route path="/login" element={<LoginPage />} />
+
+        {/* صفحة نسيت كلمة المرور */}
+        <Route path="/forgot-password" element={<ForgotPasswordPage />} />
+
+        {/* صفحة إنشاء حساب جديد */}
+        <Route path="/register" element={<RegisterPage />} />
 
         {/* لوحة التحكم حسب الدور */}
         <Route

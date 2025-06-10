@@ -1,6 +1,7 @@
 const express = require('express');
 const morgan = require('morgan');
 const cors = require('cors');
+const path = require('path');
 const app = express();
 
 const userRoutes = require('./routes/userRoutes');
@@ -18,6 +19,9 @@ const errorHandler = require('./middleware/errorHandler');
 app.use(cors());
 app.use(express.json());
 app.use(morgan('dev'));
+
+// إضافة خدمة الملفات الثابتة للصور
+app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 
 // API Routes
 app.use('/api/departments', departmentRoutes);

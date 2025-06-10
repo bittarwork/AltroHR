@@ -25,7 +25,7 @@ const AdminDashboard = () => {
       dir="rtl"
       className={`${
         darkMode ? "bg-gray-900 text-white" : "bg-gray-100 text-gray-900"
-      } min-h-screen flex flex-col pt-20`}
+      } min-h-screen flex flex-col pt-24`}
     >
       {/* الشريط العلوي */}
       <Navbar />

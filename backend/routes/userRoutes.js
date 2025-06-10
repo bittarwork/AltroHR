@@ -5,6 +5,7 @@ const UserController = require('../controllers/UserController');
 const auth = require('../middleware/authMiddleware');
 const role = require('../middleware/roleMiddleware');
 const validateObjectId = require('../middleware/validateObjectId');
+const { uploadProfileImage, handleMulterError } = require('../middleware/uploadMiddleware');
 
 // ==============================
 // 🔐 Auth Routes
@@ -16,8 +17,36 @@ router.post('/login', UserController.login);
 // جلب بيانات الحساب الحالي (مطلوب توكن)
 router.get('/me', auth, UserController.getProfile);
 
+// جلب الإحصائيات السريعة للموظف (جديد)
+router.get('/me/quick-stats', auth, UserController.getEmployeeQuickStats);
+
+// تحديث الملف الشخصي (جديد)
+router.put('/me/profile', auth, UserController.updateProfile);
+
 // تغيير كلمة المرور
 router.put('/change-password', auth, UserController.changePassword);
+
+// رفع الصورة الشخصية (جديد)
+router.post('/me/upload-image', auth, (req, res, next) => {
+    console.log('=== Upload Image Route Called ===');
+    console.log('Request body:', req.body);
+    console.log('Request files:', req.files);
+    console.log('Content-Type:', req.headers['content-type']);
+
+    uploadProfileImage(req, res, (err) => {
+        console.log('=== After Multer Middleware ===');
+        console.log('Error:', err);
+        console.log('File:', req.file);
+
+        if (err) {
+            return handleMulterError(err, req, res, next);
+        }
+        next();
+    });
+}, UserController.uploadProfileImage);
+
+// حذف الصورة الشخصية (جديد)
+router.delete('/me/delete-image', auth, UserController.deleteProfileImage);
 
 // ==============================
 // 🧾 User CRUD (Admin only)

@@ -50,7 +50,7 @@ const UserRolesSection = () => {
   const activeButton = "bg-indigo-600 text-white";
 
   return (
-    <section className={`${sectionBg} py-20`} dir="rtl">
+    <section id="roles" className={`${sectionBg} py-20`} dir="rtl">
       <div className="max-w-6xl mx-auto px-4 text-center">
         <h2 className={`text-3xl md:text-4xl font-bold mb-10 ${headingColor}`}>
           ماذا يقدم النظام لكل دور؟

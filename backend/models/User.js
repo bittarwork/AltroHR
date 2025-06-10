@@ -37,6 +37,24 @@ const userSchema = new mongoose.Schema(
             type: Date,
             required: [true, 'Hire date is required'],
         },
+        // 📱 معلومات الاتصال الإضافية
+        phone: {
+            type: String,
+            trim: true,
+        },
+        address: {
+            type: String,
+            trim: true,
+        },
+        // 🖼️ الصورة الشخصية
+        profileImage: {
+            type: String, // مسار الصورة
+            default: null,
+        },
+        profileImagePublicId: {
+            type: String, // معرف الصورة في cloudinary (إذا استخدمنا cloudinary)
+            default: null,
+        },
         isActive: {
             type: Boolean,
             default: true,

@@ -19,6 +19,15 @@ router.delete('/:id', auth, role(['employee']), validateObjectId, LeaveRequestCo
 // عرض جميع الطلبات الخاصة بالمستخدم الحالي
 router.get('/my', auth, role(['employee']), LeaveRequestController.getMyLeaveRequests);
 
+// جلب إحصائيات الإجازات للموظف
+router.get('/my/statistics', auth, role(['employee']), LeaveRequestController.getMyLeaveStatistics);
+
+// التحقق من توفر التواريخ للإجازة
+router.get('/check-availability', auth, role(['employee']), LeaveRequestController.checkAvailability);
+
+// جلب تقرير شهري للإجازات
+router.get('/my/monthly-report', auth, role(['employee']), LeaveRequestController.getMonthlyReport);
+
 // عرض تفاصيل طلب محدد (بشرط أن يكون من نفس المستخدم)
 router.get('/:id', auth, validateObjectId, LeaveRequestController.getLeaveRequestById);
 
