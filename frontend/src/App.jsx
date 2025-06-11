@@ -14,6 +14,7 @@ import RegisterPage from "./pages/auth/RegisterPage";
 import AdminRegisterEmployee from "./pages/auth/AdminRegisterEmployee";
 import AdminDashboard from "./pages/AdminDashboard";
 import EmployeeDashboard from "./pages/EmployeeDashboard";
+import HRDashboard from "./pages/HRDashboard";
 import TechnicianDashboard from "./pages/TechnicianDashboard";
 
 const App = () => {
@@ -26,7 +27,7 @@ const App = () => {
       case "employee":
         return <EmployeeDashboard />;
       case "hr":
-        return <TechnicianDashboard />;
+        return <HRDashboard />;
       default:
         return <div>Unauthorized Role</div>;
     }

@@ -7,74 +7,85 @@ import { motion, AnimatePresence } from "framer-motion";
 import axios from "axios";
 import "../styles/admin-dashboard.css";
 
-// Import Admin-specific tabs
-import UsersTab from "../components/DashboardTabs/UsersTab";
-import DepartmentTab from "../components/DashboardTabs/DepartmentTab";
-import SystemSettingsTab from "../components/DashboardTabs/SystemSettingsTab";
-import ReportsTab from "../components/DashboardTabs/ReportsTab";
+// Import HR-specific tabs
+import EmployeeManagementTab from "../components/HRDashboard/EmployeeManagementTab";
+import LeaveManagementTab from "../components/HRDashboard/LeaveManagementTab";
+import AttendanceReportsTab from "../components/HRDashboard/AttendanceReportsTab";
+import HRReportsTab from "../components/HRDashboard/HRReportsTab";
+import DepartmentManagementTab from "../components/HRDashboard/DepartmentManagementTab";
 
 // Icons
 import {
   FiUsers,
-  FiSettings,
+  FiCalendar,
+  FiBarChart2,
   FiFileText,
   FiDatabase,
-  FiBell,
-  FiTrendingUp,
   FiActivity,
-  FiServer,
-  FiLock,
-  FiHome,
-  FiCpu,
-  FiHardDrive,
-  FiWifi,
+  FiTrendingUp,
+  FiClock,
+  FiCheckCircle,
+  FiAlertCircle,
+  FiUserCheck,
+  FiUserX,
+  FiSettings,
 } from "react-icons/fi";
 
-// Define admin-specific tabs only
-const adminTabs = [
+// Define HR-specific tabs
+const hrTabs = [
   {
-    id: "users",
-    label: "إدارة المستخدمين",
+    id: "employees",
+    label: "إدارة الموظفين",
     icon: FiUsers,
     color: "blue",
-    component: UsersTab,
-    description: "إدارة حسابات المستخدمين والصلاحيات",
+    component: EmployeeManagementTab,
+    description: "إدارة بيانات الموظفين وحساباتهم",
+  },
+  {
+    id: "leave-management",
+    label: "إدارة الإجازات",
+    icon: FiCalendar,
+    color: "green",
+    component: LeaveManagementTab,
+    description: "مراجعة والموافقة على طلبات الإجازة",
+  },
+  {
+    id: "attendance-reports",
+    label: "تقارير الحضور",
+    icon: FiBarChart2,
+    color: "purple",
+    component: AttendanceReportsTab,
+    description: "تقارير مفصلة عن حضور الموظفين",
   },
   {
     id: "departments",
     label: "إدارة الأقسام",
     icon: FiDatabase,
-    color: "green",
-    component: DepartmentTab,
+    color: "orange",
+    component: DepartmentManagementTab,
     description: "إدارة أقسام الشركة والهيكل التنظيمي",
   },
   {
-    id: "systemSettings",
-    label: "إعدادات النظام",
-    icon: FiSettings,
-    color: "gray",
-    component: SystemSettingsTab,
-    description: "إعدادات النظام العامة والتكوين",
-  },
-  {
-    id: "reports",
+    id: "hr-reports",
     label: "التقارير الإدارية",
     icon: FiFileText,
-    color: "orange",
-    component: ReportsTab,
-    description: "تقارير إدارية شاملة عن النظام",
+    color: "red",
+    component: HRReportsTab,
+    description: "تقارير شاملة للموارد البشرية",
   },
 ];
 
-const AdminDashboard = () => {
+const HRDashboard = () => {
   const { darkMode } = useTheme();
   const { user } = useAuth();
-  const [activeTab, setActiveTab] = useState("users");
-  const [systemInfo, setSystemInfo] = useState({
-    totalUsers: 0,
-    activeSessions: 0,
-    systemUptime: "0 أيام",
-    lastBackup: "غير متوفر",
+  const [activeTab, setActiveTab] = useState("employees");
+  const [hrStats, setHrStats] = useState({
+    totalEmployees: 0,
+    activeEmployees: 0,
+    pendingLeaves: 0,
+    todayAttendance: 0,
+    thisMonthLeaves: 0,
+    departmentsCount: 0,
   });
   const [currentTime, setCurrentTime] = useState(new Date());
   const [loading, setLoading] = useState(true);
@@ -88,12 +99,12 @@ const AdminDashboard = () => {
     return () => clearInterval(timer);
   }, []);
 
-  // Load system information
+  // Load HR statistics
   useEffect(() => {
-    loadSystemInfo();
+    loadHRStats();
   }, []);
 
-  const loadSystemInfo = async () => {
+  const loadHRStats = async () => {
     try {
       setLoading(true);
       const token = user?.token;
@@ -104,54 +115,82 @@ const AdminDashboard = () => {
         return;
       }
 
-      // جلب إجمالي عدد المستخدمين
-      const usersResponse = await axios.get(
-        `${import.meta.env.VITE_API_URL}/api/user`,
-        {
+      // Parallel API calls for better performance
+      const [
+        usersResponse,
+        leavesResponse,
+        attendanceResponse,
+        departmentsResponse,
+      ] = await Promise.all([
+        // Total employees
+        axios.get(`${import.meta.env.VITE_API_URL}/api/user`, {
           headers: { Authorization: `Bearer ${token}` },
-        }
-      );
+        }),
+        // Pending leave requests
+        axios.get(`${import.meta.env.VITE_API_URL}/api/leave`, {
+          headers: { Authorization: `Bearer ${token}` },
+        }),
+        // Today's attendance summary
+        axios.get(`${import.meta.env.VITE_API_URL}/api/attendance/by-date`, {
+          params: { date: new Date().toISOString().split("T")[0] },
+          headers: { Authorization: `Bearer ${token}` },
+        }),
+        // Departments count
+        axios.get(`${import.meta.env.VITE_API_URL}/api/departments`, {
+          headers: { Authorization: `Bearer ${token}` },
+        }),
+      ]);
 
-      const totalUsers = usersResponse.data?.length || 0;
+      const users = usersResponse.data || [];
+      const leaves = leavesResponse.data?.requests || [];
+      const attendance = attendanceResponse.data || [];
+      const departments = departmentsResponse.data || [];
 
-      // حساب الجلسات النشطة (المستخدمين النشطين)
-      const activeUsers =
-        usersResponse.data?.filter((user) => user.isActive) || [];
-      const activeSessions = activeUsers.length;
+      // Calculate statistics
+      const totalEmployees = users.length;
+      const activeEmployees = users.filter((user) => user.isActive).length;
+      const pendingLeaves = leaves.filter(
+        (leave) => leave.status === "pending"
+      ).length;
+      const todayAttendance = attendance.length;
 
-      // وقت تشغيل النظام - نستخدم الوقت الحالي كمرجع
-      const systemStartTime = new Date("2024-01-01"); // يمكن تحديثها لتاريخ إطلاق النظام
+      // This month leaves
       const currentDate = new Date();
-      const uptimeInDays = Math.floor(
-        (currentDate - systemStartTime) / (1000 * 60 * 60 * 24)
-      );
-      const systemUptime =
-        uptimeInDays > 0 ? `${uptimeInDays} أيام` : "أقل من يوم";
+      const thisMonthLeaves = leaves.filter((leave) => {
+        const leaveDate = new Date(leave.createdAt);
+        return (
+          leaveDate.getMonth() === currentDate.getMonth() &&
+          leaveDate.getFullYear() === currentDate.getFullYear()
+        );
+      }).length;
 
-      // آخر نسخة احتياطية - قريباً سنضيف نظام النسخ الاحتياطية
-      const lastBackup = "سيتم تطبيقها قريباً";
+      const departmentsCount = departments.length;
 
-      setSystemInfo({
-        totalUsers,
-        activeSessions,
-        systemUptime,
-        lastBackup,
+      setHrStats({
+        totalEmployees,
+        activeEmployees,
+        pendingLeaves,
+        todayAttendance,
+        thisMonthLeaves,
+        departmentsCount,
       });
     } catch (error) {
-      console.error("خطأ في تحميل معلومات النظام:", error);
-      // في حالة الفشل، نضع قيم افتراضية معقولة
-      setSystemInfo({
-        totalUsers: 0,
-        activeSessions: 0,
-        systemUptime: "غير متوفر",
-        lastBackup: "غير متوفر",
+      console.error("خطأ في تحميل إحصائيات الموارد البشرية:", error);
+      // Set default values on error
+      setHrStats({
+        totalEmployees: 0,
+        activeEmployees: 0,
+        pendingLeaves: 0,
+        todayAttendance: 0,
+        thisMonthLeaves: 0,
+        departmentsCount: 0,
       });
     } finally {
       setLoading(false);
     }
   };
 
-  const activeTabData = adminTabs.find((tab) => tab.id === activeTab);
+  const activeTabData = hrTabs.find((tab) => tab.id === activeTab);
   const ActiveTabComponent = activeTabData?.component;
 
   const getColorClasses = (color, isActive = false) => {
@@ -168,9 +207,6 @@ const AdminDashboard = () => {
       red: isActive
         ? "bg-red-500 text-white shadow-lg shadow-red-500/30"
         : "text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20",
-      gray: isActive
-        ? "bg-gray-500 text-white shadow-lg shadow-gray-500/30"
-        : "text-gray-600 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-900/20",
       orange: isActive
         ? "bg-orange-500 text-white shadow-lg shadow-orange-500/30"
         : "text-orange-600 dark:text-orange-400 hover:bg-orange-50 dark:hover:bg-orange-900/20",
@@ -178,14 +214,12 @@ const AdminDashboard = () => {
     return colors[color] || colors.blue;
   };
 
-  // دالة للحصول على الألوان المتدرجة العصرية
   const getGradientClasses = (color) => {
     const gradients = {
       blue: "from-blue-500 via-blue-600 to-indigo-600",
       green: "from-green-500 via-emerald-600 to-teal-600",
       purple: "from-purple-500 via-violet-600 to-indigo-600",
       red: "from-red-500 via-rose-600 to-pink-600",
-      gray: "from-gray-500 via-slate-600 to-gray-700",
       orange: "from-orange-500 via-amber-600 to-yellow-600",
     };
     return gradients[color] || gradients.blue;
@@ -208,20 +242,20 @@ const AdminDashboard = () => {
           darkMode
             ? "bg-gradient-to-r from-gray-800 via-gray-850 to-gray-800 border-gray-700"
             : "bg-gradient-to-r from-white via-gray-50 to-white border-gray-200"
-        } border-b pt-24 pb-6 admin-header`}
+        } border-b pt-24 pb-6`}
       >
         <div className="container mx-auto px-4">
           <div className="flex items-center justify-between">
-            {/* Admin Info */}
+            {/* HR Manager Info */}
             <div className="flex items-center space-x-4 space-x-reverse">
               <div
                 className={`w-16 h-16 rounded-xl flex items-center justify-center ${
                   darkMode
-                    ? "bg-gradient-to-br from-blue-600 to-blue-800"
-                    : "bg-gradient-to-br from-blue-500 to-blue-600"
+                    ? "bg-gradient-to-br from-green-600 to-emerald-800"
+                    : "bg-gradient-to-br from-green-500 to-emerald-600"
                 } shadow-lg`}
               >
-                <FiSettings className="text-white text-2xl" />
+                <FiUsers className="text-white text-2xl" />
               </div>
               <div>
                 <h1
@@ -229,98 +263,126 @@ const AdminDashboard = () => {
                     darkMode ? "text-white" : "text-gray-900"
                   }`}
                 >
-                  مرحباً، {user?.user?.name || "المدير"}
+                  مرحباً، {user?.user?.name || "مدير الموارد البشرية"}
                 </h1>
                 <p
                   className={`text-sm ${
                     darkMode ? "text-gray-400" : "text-gray-600"
                   }`}
                 >
-                  مدير النظام - لوحة التحكم الرئيسية
+                  مدير الموارد البشرية - لوحة التحكم
                 </p>
               </div>
             </div>
 
-            {/* System Status Cards - محسن */}
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+            {/* HR Statistics Cards */}
+            <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-3">
+              <motion.div
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 0.1 }}
+                whileHover={{ scale: 1.05, y: -2 }}
+                className="p-3 rounded-lg bg-gradient-to-br from-blue-500 to-blue-600 text-white text-center shadow-lg"
+              >
+                <FiUsers className="text-xl mx-auto mb-1" />
+                <div className="text-lg font-bold">
+                  {loading ? (
+                    <div className="w-6 h-5 bg-white/20 rounded animate-pulse mx-auto"></div>
+                  ) : (
+                    hrStats.totalEmployees
+                  )}
+                </div>
+                <div className="text-xs opacity-90">إجمالي الموظفين</div>
+              </motion.div>
+
               <motion.div
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: 0.2 }}
-                whileHover={{ scale: 1.08, y: -5 }}
-                className="p-4 rounded-xl gradient-blue text-white text-center modern-shadow-lg ripple-effect"
+                whileHover={{ scale: 1.05, y: -2 }}
+                className="p-3 rounded-lg bg-gradient-to-br from-green-500 to-green-600 text-white text-center shadow-lg"
               >
-                <FiUsers className="text-2xl mx-auto mb-2 text-white" />
-                <div className="text-xl font-bold">
+                <FiUserCheck className="text-xl mx-auto mb-1" />
+                <div className="text-lg font-bold">
                   {loading ? (
-                    <div className="w-8 h-6 bg-white/20 rounded animate-pulse mx-auto"></div>
+                    <div className="w-6 h-5 bg-white/20 rounded animate-pulse mx-auto"></div>
                   ) : (
-                    systemInfo.totalUsers
+                    hrStats.activeEmployees
                   )}
                 </div>
-                <div className="text-xs text-white/80 font-medium">
-                  إجمالي المستخدمين
-                </div>
+                <div className="text-xs opacity-90">موظف نشط</div>
               </motion.div>
 
               <motion.div
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: 0.3 }}
-                whileHover={{ scale: 1.08, y: -5 }}
-                className="p-4 rounded-xl gradient-green text-white text-center modern-shadow-lg ripple-effect"
+                whileHover={{ scale: 1.05, y: -2 }}
+                className="p-3 rounded-lg bg-gradient-to-br from-yellow-500 to-orange-600 text-white text-center shadow-lg"
               >
-                <FiActivity className="text-2xl mx-auto mb-2 text-white" />
-                <div className="text-xl font-bold">
+                <FiAlertCircle className="text-xl mx-auto mb-1" />
+                <div className="text-lg font-bold">
                   {loading ? (
-                    <div className="w-8 h-6 bg-white/20 rounded animate-pulse mx-auto"></div>
+                    <div className="w-6 h-5 bg-white/20 rounded animate-pulse mx-auto"></div>
                   ) : (
-                    systemInfo.activeSessions
+                    hrStats.pendingLeaves
                   )}
                 </div>
-                <div className="text-xs text-white/80 font-medium">
-                  جلسات نشطة
-                </div>
+                <div className="text-xs opacity-90">طلبات معلقة</div>
               </motion.div>
 
               <motion.div
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: 0.4 }}
-                whileHover={{ scale: 1.08, y: -5 }}
-                className="p-4 rounded-xl gradient-purple text-white text-center modern-shadow-lg ripple-effect"
+                whileHover={{ scale: 1.05, y: -2 }}
+                className="p-3 rounded-lg bg-gradient-to-br from-purple-500 to-purple-600 text-white text-center shadow-lg"
               >
-                <FiServer className="text-2xl mx-auto mb-2 text-white" />
-                <div className="text-sm font-bold">
+                <FiActivity className="text-xl mx-auto mb-1" />
+                <div className="text-lg font-bold">
                   {loading ? (
-                    <div className="w-16 h-5 bg-white/20 rounded animate-pulse mx-auto"></div>
+                    <div className="w-6 h-5 bg-white/20 rounded animate-pulse mx-auto"></div>
                   ) : (
-                    systemInfo.systemUptime
+                    hrStats.todayAttendance
                   )}
                 </div>
-                <div className="text-xs text-white/80 font-medium">
-                  وقت التشغيل
-                </div>
+                <div className="text-xs opacity-90">حضور اليوم</div>
               </motion.div>
 
               <motion.div
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: 0.5 }}
-                whileHover={{ scale: 1.08, y: -5 }}
-                className="p-4 rounded-xl gradient-orange text-white text-center modern-shadow-lg ripple-effect"
+                whileHover={{ scale: 1.05, y: -2 }}
+                className="p-3 rounded-lg bg-gradient-to-br from-teal-500 to-cyan-600 text-white text-center shadow-lg"
               >
-                <FiHardDrive className="text-2xl mx-auto mb-2 text-white" />
-                <div className="text-sm font-bold">
+                <FiCalendar className="text-xl mx-auto mb-1" />
+                <div className="text-lg font-bold">
                   {loading ? (
-                    <div className="w-20 h-5 bg-white/20 rounded animate-pulse mx-auto"></div>
+                    <div className="w-6 h-5 bg-white/20 rounded animate-pulse mx-auto"></div>
                   ) : (
-                    systemInfo.lastBackup
+                    hrStats.thisMonthLeaves
                   )}
                 </div>
-                <div className="text-xs text-white/80 font-medium">
-                  آخر نسخة احتياطية
+                <div className="text-xs opacity-90">إجازات الشهر</div>
+              </motion.div>
+
+              <motion.div
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 0.6 }}
+                whileHover={{ scale: 1.05, y: -2 }}
+                className="p-3 rounded-lg bg-gradient-to-br from-indigo-500 to-indigo-600 text-white text-center shadow-lg"
+              >
+                <FiDatabase className="text-xl mx-auto mb-1" />
+                <div className="text-lg font-bold">
+                  {loading ? (
+                    <div className="w-6 h-5 bg-white/20 rounded animate-pulse mx-auto"></div>
+                  ) : (
+                    hrStats.departmentsCount
+                  )}
                 </div>
+                <div className="text-xs opacity-90">الأقسام</div>
               </motion.div>
             </div>
 
@@ -338,7 +400,7 @@ const AdminDashboard = () => {
                   day: "numeric",
                 })}
               </div>
-              <div className="text-2xl font-bold">
+              <div className="text-xl font-bold">
                 {currentTime.toLocaleTimeString("ar-EG", {
                   hour12: true,
                   hour: "2-digit",
@@ -350,7 +412,7 @@ const AdminDashboard = () => {
         </div>
       </motion.div>
 
-      {/* Navigation Tabs - تصميم عصري محسن */}
+      {/* Navigation Tabs */}
       <div className="container mx-auto px-4 py-6">
         <motion.div
           initial={{ opacity: 0, y: 20 }}
@@ -361,27 +423,27 @@ const AdminDashboard = () => {
               : "bg-gradient-to-r from-white to-gray-50 border border-gray-200"
           } rounded-2xl shadow-2xl p-3 mb-6 backdrop-blur-lg`}
         >
-          {/* العنوان والخط الفاصل */}
+          {/* Title */}
           <div className="mb-4">
             <h3
               className={`text-lg font-bold ${
                 darkMode ? "text-white" : "text-gray-900"
               } text-center mb-2`}
             >
-              أقسام التحكم الرئيسية
+              أقسام إدارة الموارد البشرية
             </h3>
             <div
               className={`w-24 h-1 mx-auto rounded-full ${
                 darkMode
-                  ? "bg-gradient-to-r from-blue-400 to-purple-500"
-                  : "bg-gradient-to-r from-blue-500 to-purple-600"
+                  ? "bg-gradient-to-r from-green-400 to-emerald-500"
+                  : "bg-gradient-to-r from-green-500 to-emerald-600"
               }`}
             ></div>
           </div>
 
-          {/* التابات مع تحسينات عصرية */}
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-3">
-            {adminTabs.map((tab, index) => {
+          {/* Tabs */}
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-3">
+            {hrTabs.map((tab, index) => {
               const Icon = tab.icon;
               const isActive = activeTab === tab.id;
 
@@ -394,7 +456,6 @@ const AdminDashboard = () => {
                   whileHover={{
                     scale: 1.05,
                     y: -2,
-                    boxShadow: "0 10px 30px rgba(0,0,0,0.1)",
                   }}
                   whileTap={{ scale: 0.95 }}
                   onClick={() => {
@@ -418,7 +479,7 @@ const AdminDashboard = () => {
                         } modern-shadow hover:modern-shadow-lg`
                   }`}
                 >
-                  {/* تأثير الخلفية المتحركة */}
+                  {/* Background Effect */}
                   <div
                     className={`absolute inset-0 opacity-0 group-hover:opacity-20 transition-opacity duration-300 ${
                       !isActive
@@ -427,9 +488,9 @@ const AdminDashboard = () => {
                     }`}
                   ></div>
 
-                  {/* محتوى التاب */}
+                  {/* Content */}
                   <div className="relative z-10">
-                    {/* الأيقونة مع تأثيرات */}
+                    {/* Icon */}
                     <div
                       className={`inline-flex items-center justify-center w-12 h-12 rounded-full mb-3 transition-all duration-300 ${
                         isActive
@@ -440,12 +501,12 @@ const AdminDashboard = () => {
                       <Icon className="text-xl" />
                     </div>
 
-                    {/* النص الرئيسي */}
+                    {/* Label */}
                     <div className="text-sm font-bold mb-1 transition-all duration-300">
                       {tab.label}
                     </div>
 
-                    {/* الوصف */}
+                    {/* Description */}
                     <div
                       className={`text-xs transition-all duration-300 ${
                         isActive
@@ -458,10 +519,10 @@ const AdminDashboard = () => {
                       {tab.description}
                     </div>
 
-                    {/* مؤشر التاب النشط */}
+                    {/* Active Indicator */}
                     {isActive && (
                       <motion.div
-                        layoutId="activeTab"
+                        layoutId="activeHRTab"
                         className="absolute -bottom-1 left-1/2 transform -translate-x-1/2 w-8 h-1 bg-white rounded-full"
                         transition={{
                           type: "spring",
@@ -472,7 +533,7 @@ const AdminDashboard = () => {
                     )}
                   </div>
 
-                  {/* تأثير الضوء */}
+                  {/* Light Effect */}
                   <div className="absolute top-0 left-0 w-full h-full bg-gradient-to-r from-transparent via-white/10 to-transparent opacity-0 group-hover:opacity-100 transform -skew-x-12 -translate-x-full group-hover:translate-x-full transition-all duration-700"></div>
                 </motion.button>
               );
@@ -480,7 +541,7 @@ const AdminDashboard = () => {
           </div>
         </motion.div>
 
-        {/* Active Tab Content مع شاشة تحميل عصرية */}
+        {/* Active Tab Content */}
         <AnimatePresence mode="wait">
           {tabLoading ? (
             <motion.div
@@ -494,7 +555,6 @@ const AdminDashboard = () => {
             >
               <div className="flex items-center justify-center py-20">
                 <div className="text-center">
-                  {/* الرسوم المتحركة للتحميل */}
                   <div className="relative mb-6">
                     <div
                       className={`w-16 h-16 mx-auto rounded-full border-4 ${
@@ -503,7 +563,7 @@ const AdminDashboard = () => {
                     ></div>
                     <div
                       className={`absolute inset-0 w-16 h-16 mx-auto rounded-full border-4 border-transparent ${
-                        darkMode ? "border-t-blue-400" : "border-t-blue-500"
+                        darkMode ? "border-t-green-400" : "border-t-green-500"
                       } animate-spin`}
                       style={{
                         animationDirection: "reverse",
@@ -512,13 +572,12 @@ const AdminDashboard = () => {
                     ></div>
                   </div>
 
-                  {/* النقاط المتحركة */}
                   <div className="flex justify-center space-x-1 space-x-reverse mb-4">
                     {[0, 1, 2].map((i) => (
                       <motion.div
                         key={i}
                         className={`w-2 h-2 rounded-full ${
-                          darkMode ? "bg-blue-400" : "bg-blue-500"
+                          darkMode ? "bg-green-400" : "bg-green-500"
                         }`}
                         animate={{
                           scale: [1, 1.5, 1],
@@ -540,15 +599,7 @@ const AdminDashboard = () => {
                   >
                     جاري التحميل...
                   </p>
-                  <p
-                    className={`text-xs ${
-                      darkMode ? "text-gray-400" : "text-gray-500"
-                    } mt-1`}
-                  >
-                    يرجى الانتظار قليلاً
-                  </p>
 
-                  {/* شريط التقدم */}
                   <div
                     className={`w-64 h-1 ${
                       darkMode ? "bg-gray-700" : "bg-gray-200"
@@ -557,8 +608,8 @@ const AdminDashboard = () => {
                     <motion.div
                       className={`h-full rounded-full ${
                         darkMode
-                          ? "bg-gradient-to-r from-blue-400 to-purple-500"
-                          : "bg-gradient-to-r from-blue-500 to-purple-600"
+                          ? "bg-gradient-to-r from-green-400 to-emerald-500"
+                          : "bg-gradient-to-r from-green-500 to-emerald-600"
                       }`}
                       initial={{ width: "0%" }}
                       animate={{ width: "100%" }}
@@ -584,7 +635,7 @@ const AdminDashboard = () => {
                 darkMode ? "bg-gray-800" : "bg-white"
               } rounded-2xl shadow-2xl overflow-hidden backdrop-blur-sm modern-shadow-lg slide-up-enter`}
             >
-              {/* Tab Header محسن */}
+              {/* Tab Header */}
               <div
                 className={`px-6 py-5 border-b ${
                   darkMode ? "border-gray-700" : "border-gray-200"
@@ -641,14 +692,19 @@ const AdminDashboard = () => {
                 </motion.div>
               </div>
 
-              {/* Tab Content مع تأثيرات الدخول */}
+              {/* Tab Content */}
               <motion.div
                 className="p-0"
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: 0.6 }}
               >
-                {ActiveTabComponent && <ActiveTabComponent />}
+                {ActiveTabComponent && (
+                  <ActiveTabComponent
+                    onStatsUpdate={loadHRStats}
+                    hrStats={hrStats}
+                  />
+                )}
               </motion.div>
             </motion.div>
           )}
@@ -660,4 +716,4 @@ const AdminDashboard = () => {
   );
 };
 
-export default AdminDashboard;
+export default HRDashboard;

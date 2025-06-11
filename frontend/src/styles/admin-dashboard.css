@@ -1,0 +1,179 @@
+/* تحسينات خاصة بالادمن داشبورد */
+
+/* تأثير الضوء المتحرك للتابات */
+.tab-shimmer {
+    position: relative;
+    overflow: hidden;
+}
+
+.tab-shimmer::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: -100%;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(90deg,
+            transparent,
+            rgba(255, 255, 255, 0.2),
+            transparent);
+    transition: left 0.5s;
+}
+
+.tab-shimmer:hover::before {
+    left: 100%;
+}
+
+/* تأثير النبضة للتاب النشط */
+.active-tab-pulse {
+    animation: pulse-glow 2s infinite;
+}
+
+@keyframes pulse-glow {
+
+    0%,
+    100% {
+        box-shadow: 0 0 20px rgba(59, 130, 246, 0.3);
+    }
+
+    50% {
+        box-shadow: 0 0 30px rgba(59, 130, 246, 0.5);
+    }
+}
+
+/* تحسين شاشة التحميل */
+.loading-spinner {
+    position: relative;
+}
+
+.loading-spinner::after {
+    content: '';
+    position: absolute;
+    width: 20px;
+    height: 20px;
+    border: 2px solid transparent;
+    border-top: 2px solid currentColor;
+    border-radius: 50%;
+    animation: spin 1s linear infinite;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+}
+
+@keyframes spin {
+    to {
+        transform: translate(-50%, -50%) rotate(360deg);
+    }
+}
+
+/* تأثير التموج للأزرار */
+.ripple-effect {
+    position: relative;
+    overflow: hidden;
+    transform: translate3d(0, 0, 0);
+}
+
+.ripple-effect::after {
+    content: '';
+    display: block;
+    position: absolute;
+    width: 100%;
+    height: 100%;
+    top: 0;
+    left: 0;
+    pointer-events: none;
+    background-image: radial-gradient(circle, #fff 10%, transparent 10.01%);
+    background-repeat: no-repeat;
+    background-position: 50%;
+    transform: scale(10, 10);
+    opacity: 0;
+    transition: transform 0.5s, opacity 1s;
+}
+
+.ripple-effect:active::after {
+    transform: scale(0, 0);
+    opacity: 0.2;
+    transition: 0s;
+}
+
+/* تحسين الخطوط والألوان */
+.admin-header {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+}
+
+.gradient-text {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+}
+
+/* تأثيرات الدخول المحسنة */
+.slide-up-enter {
+    animation: slideUpEnter 0.4s ease-out;
+}
+
+@keyframes slideUpEnter {
+    from {
+        opacity: 0;
+        transform: translateY(20px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+/* تحسين الظلال */
+.modern-shadow {
+    box-shadow:
+        0 4px 6px -1px rgba(0, 0, 0, 0.1),
+        0 2px 4px -1px rgba(0, 0, 0, 0.06),
+        0 0 0 1px rgba(255, 255, 255, 0.05);
+}
+
+.modern-shadow-lg {
+    box-shadow:
+        0 10px 15px -3px rgba(0, 0, 0, 0.1),
+        0 4px 6px -2px rgba(0, 0, 0, 0.05),
+        0 0 0 1px rgba(255, 255, 255, 0.05);
+}
+
+/* تحسين التمرير */
+.smooth-scroll {
+    scroll-behavior: smooth;
+}
+
+/* تأثيرات الألوان المتدرجة */
+.gradient-blue {
+    background: linear-gradient(135deg, #3b82f6, #1d4ed8, #6366f1);
+}
+
+.gradient-green {
+    background: linear-gradient(135deg, #10b981, #059669, #0d9488);
+}
+
+.gradient-purple {
+    background: linear-gradient(135deg, #8b5cf6, #7c3aed, #6366f1);
+}
+
+.gradient-orange {
+    background: linear-gradient(135deg, #f59e0b, #d97706, #f97316);
+}
+
+.gradient-gray {
+    background: linear-gradient(135deg, #6b7280, #4b5563, #374151);
+}
+
+/* تحسين الاستجابة */
+@media (max-width: 768px) {
+    .admin-tabs {
+        grid-template-columns: 1fr;
+        gap: 0.5rem;
+    }
+
+    .tab-content {
+        padding: 1rem;
+    }
+}

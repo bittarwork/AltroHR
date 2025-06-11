@@ -70,7 +70,7 @@ const ConfirmDeleteDepartmentModal = ({
           animate={{ scale: 1, opacity: 1, y: 0 }}
           exit={{ scale: 0.95, opacity: 0, y: 20 }}
           transition={{ duration: 0.2, ease: "easeOut" }}
-          className={`w-full max-w-md mx-4 rounded-2xl shadow-2xl ${
+          className={`w-full max-w-md mx-4 max-h-[90vh] overflow-y-auto rounded-2xl shadow-2xl ${
             darkMode ? "bg-gray-800 text-white" : "bg-white text-gray-800"
           }`}
           onClick={(e) => e.stopPropagation()}

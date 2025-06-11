@@ -32,6 +32,28 @@ const salaryTypes = [
   { value: "hourly", label: "بالساعة (مرن)" },
 ];
 
+// مكون InputField خارج المكون الرئيسي لتجنب إعادة التعريف
+const InputField = ({
+  icon: Icon,
+  label,
+  children,
+  required = false,
+  darkMode,
+}) => (
+  <div className="space-y-2">
+    <label
+      className={`flex items-center space-x-2 space-x-reverse text-sm font-medium ${
+        darkMode ? "text-gray-300" : "text-gray-700"
+      }`}
+    >
+      <Icon className="text-blue-500" size={16} />
+      <span>{label}</span>
+      {required && <span className="text-red-500">*</span>}
+    </label>
+    {children}
+  </div>
+);
+
 const EditUserModal = ({ userId, isOpen, onClose, onSuccess }) => {
   const { darkMode } = useTheme();
   const { user } = useAuth();
@@ -199,21 +221,6 @@ const EditUserModal = ({ userId, isOpen, onClose, onSuccess }) => {
     }
   };
 
-  const InputField = ({ icon: Icon, label, children, required = false }) => (
-    <div className="space-y-2">
-      <label
-        className={`flex items-center space-x-2 space-x-reverse text-sm font-medium ${
-          darkMode ? "text-gray-300" : "text-gray-700"
-        }`}
-      >
-        <Icon className="text-blue-500" size={16} />
-        <span>{label}</span>
-        {required && <span className="text-red-500">*</span>}
-      </label>
-      {children}
-    </div>
-  );
-
   return (
     <AnimatePresence>
       {isOpen && (
@@ -314,7 +321,12 @@ const EditUserModal = ({ userId, isOpen, onClose, onSuccess }) => {
                     </div>
 
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                      <InputField icon={FiUser} label="الاسم الكامل" required>
+                      <InputField
+                        icon={FiUser}
+                        label="الاسم الكامل"
+                        required
+                        darkMode={darkMode}
+                      >
                         <input
                           type="text"
                           name="name"
@@ -334,6 +346,7 @@ const EditUserModal = ({ userId, isOpen, onClose, onSuccess }) => {
                         icon={FiMail}
                         label="البريد الإلكتروني"
                         required
+                        darkMode={darkMode}
                       >
                         <input
                           type="email"
@@ -371,7 +384,11 @@ const EditUserModal = ({ userId, isOpen, onClose, onSuccess }) => {
                     </div>
 
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                      <InputField icon={FiBriefcase} label="المسمى الوظيفي">
+                      <InputField
+                        icon={FiBriefcase}
+                        label="المسمى الوظيفي"
+                        darkMode={darkMode}
+                      >
                         <input
                           type="text"
                           name="position"
@@ -386,7 +403,12 @@ const EditUserModal = ({ userId, isOpen, onClose, onSuccess }) => {
                         />
                       </InputField>
 
-                      <InputField icon={FiUser} label="الدور" required>
+                      <InputField
+                        icon={FiUser}
+                        label="الدور"
+                        required
+                        darkMode={darkMode}
+                      >
                         <Select
                           placeholder="اختر الدور"
                           options={roleOptions}
@@ -397,7 +419,11 @@ const EditUserModal = ({ userId, isOpen, onClose, onSuccess }) => {
                         />
                       </InputField>
 
-                      <InputField icon={FiBriefcase} label="القسم">
+                      <InputField
+                        icon={FiBriefcase}
+                        label="القسم"
+                        darkMode={darkMode}
+                      >
                         <Select
                           placeholder="اختر القسم"
                           options={departments}
@@ -414,6 +440,7 @@ const EditUserModal = ({ userId, isOpen, onClose, onSuccess }) => {
                         icon={FiCalendar}
                         label="تاريخ التوظيف"
                         required
+                        darkMode={darkMode}
                       >
                         <DatePicker
                           selected={form.hireDate}
@@ -449,7 +476,11 @@ const EditUserModal = ({ userId, isOpen, onClose, onSuccess }) => {
                     </div>
 
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                      <InputField icon={FiDollarSign} label="نوع الراتب">
+                      <InputField
+                        icon={FiDollarSign}
+                        label="نوع الراتب"
+                        darkMode={darkMode}
+                      >
                         <Select
                           placeholder="اختر نوع الراتب"
                           options={salaryTypes}
@@ -466,6 +497,7 @@ const EditUserModal = ({ userId, isOpen, onClose, onSuccess }) => {
                         <InputField
                           icon={FiDollarSign}
                           label="الراتب الشهري (ل.س)"
+                          darkMode={darkMode}
                         >
                           <input
                             type="number"
@@ -487,6 +519,7 @@ const EditUserModal = ({ userId, isOpen, onClose, onSuccess }) => {
                           <InputField
                             icon={FiDollarSign}
                             label="الأجر بالساعة (ل.س)"
+                            darkMode={darkMode}
                           >
                             <input
                               type="number"
@@ -505,6 +538,7 @@ const EditUserModal = ({ userId, isOpen, onClose, onSuccess }) => {
                           <InputField
                             icon={FiDollarSign}
                             label="أجر الساعات الإضافية (ل.س)"
+                            darkMode={darkMode}
                           >
                             <input
                               type="number"
@@ -523,6 +557,7 @@ const EditUserModal = ({ userId, isOpen, onClose, onSuccess }) => {
                           <InputField
                             icon={FiClock}
                             label="عدد ساعات العمل يومياً"
+                            darkMode={darkMode}
                           >
                             <input
                               type="number"
