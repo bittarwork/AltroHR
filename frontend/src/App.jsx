@@ -11,6 +11,7 @@ import LandingPage from "./pages/LandingPaage";
 import LoginPage from "./pages/auth/LoginPage";
 import ForgotPasswordPage from "./pages/auth/ForgotPasswordPage";
 import RegisterPage from "./pages/auth/RegisterPage";
+import AdminRegisterEmployee from "./pages/auth/AdminRegisterEmployee";
 import AdminDashboard from "./pages/AdminDashboard";
 import EmployeeDashboard from "./pages/EmployeeDashboard";
 import TechnicianDashboard from "./pages/TechnicianDashboard";
@@ -45,6 +46,12 @@ const App = () => {
 
         {/* صفحة إنشاء حساب جديد */}
         <Route path="/register" element={<RegisterPage />} />
+
+        {/* صفحة إدارة حسابات الموظفين - للمسؤولين فقط */}
+        <Route
+          path="/admin/register-employee"
+          element={<AdminRegisterEmployee />}
+        />
 
         {/* لوحة التحكم حسب الدور */}
         <Route

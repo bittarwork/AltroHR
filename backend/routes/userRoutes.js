@@ -52,6 +52,9 @@ router.delete('/me/delete-image', auth, UserController.deleteProfileImage);
 // 🧾 User CRUD (Admin only)
 // ==============================
 
+// إنشاء حساب موظف جديد (من المسؤولين)
+router.post('/create-employee', auth, role(['admin', 'hr']), UserController.createEmployee);
+
 router.post('/', auth, role(['admin', 'hr']), UserController.createUser);
 
 router.put('/:id', auth, role(['admin', 'hr']), validateObjectId, UserController.updateUser);

@@ -112,93 +112,163 @@ const UsersTable = ({ filters, reloadTrigger }) => {
 
   return (
     <div
-      className={`w-full rounded-xl p-4 shadow-lg overflow-x-auto ${
-        darkMode ? "bg-gray-900 text-white" : "bg-white text-gray-800"
+      className={`w-full overflow-x-auto ${
+        darkMode ? "bg-gray-800 text-white" : "bg-white text-gray-800"
       }`}
     >
-      <h2 className="text-lg text-center font-semibold mb-4">
-        جدول كامل المستخدمين
-      </h2>
-
       {loading ? (
         <div className="text-center py-10 text-gray-400">جاري التحميل...</div>
       ) : users.length === 0 ? (
         <div className="text-center py-10 text-gray-400">لا يوجد مستخدمين.</div>
       ) : (
         <>
-          <table className="w-full table-auto border-collapse">
-            <thead>
-              <tr className="bg-indigo-600 text-white text-sm">
-                <th className="py-2 px-4 text-right">الاسم</th>
-                <th className="py-2 px-4 text-right">البريد الإلكتروني</th>
-                <th className="py-2 px-4 text-right">الدور</th>
-                <th className="py-2 px-4 text-right">القسم</th>
-                <th className="py-2 px-4 text-right">المنصب</th>
-                <th className="py-2 px-4 text-right">الحالة</th>
-                <th className="py-2 px-4 text-right">إجراءات</th>
-              </tr>
-            </thead>
-            <tbody>
-              {currentUsers.map((user, idx) => (
+          <div className="p-4">
+            <table className="w-full table-auto border-collapse">
+              <thead>
                 <tr
-                  key={user._id}
-                  className={`text-sm ${
-                    idx % 2 === 0
-                      ? darkMode
-                        ? "bg-gray-800"
-                        : "bg-slate-50"
-                      : ""
-                  }`}
+                  className={`${
+                    darkMode ? "bg-gray-700" : "bg-gray-100"
+                  } text-sm`}
                 >
-                  <td className="py-2 px-4">{user.name}</td>
-                  <td className="py-2 px-4">{user.email}</td>
-                  <td className="py-2 px-4 capitalize">{user.role}</td>
-                  <td className="py-2 px-4">{user.department?.name || "-"}</td>
-                  <td className="py-2 px-4">{user.position || "-"}</td>
-                  <td className="py-2 px-4">
-                    <span
-                      className={`text-xs font-medium px-2 py-1 rounded-full ${
-                        user.isActive
-                          ? "bg-emerald-100 text-emerald-700"
-                          : "bg-rose-100 text-rose-700"
-                      }`}
-                    >
-                      {user.isActive ? "نشط" : "غير نشط"}
-                    </span>
-                  </td>
-                  <td className="py-2 px-4 flex gap-2 justify-end">
-                    <IconButton
-                      color="blue"
-                      onClick={() => setViewUserId(user._id)}
-                      icon={<FaEye />}
-                      title="عرض"
-                    />
-
-                    <IconButton
-                      color="yellow"
-                      onClick={() => setEditUserId(user._id)}
-                      icon={<FaEdit />}
-                      title="تعديل"
-                    />
-
-                    <IconButton
-                      color="red"
-                      onClick={() => setUserToDelete(user)}
-                      icon={<FaTrash />}
-                      title="حذف"
-                    />
-
-                    <IconButton
-                      color="indigo"
-                      onClick={() => onToggleActive(user._id, user.isActive)}
-                      icon={user.isActive ? <FaToggleOn /> : <FaToggleOff />}
-                      title={user.isActive ? "تعطيل" : "تفعيل"}
-                    />
-                  </td>
+                  <th
+                    className={`py-3 px-4 text-right font-medium ${
+                      darkMode ? "text-gray-300" : "text-gray-700"
+                    }`}
+                  >
+                    الاسم
+                  </th>
+                  <th
+                    className={`py-3 px-4 text-right font-medium ${
+                      darkMode ? "text-gray-300" : "text-gray-700"
+                    }`}
+                  >
+                    البريد الإلكتروني
+                  </th>
+                  <th
+                    className={`py-3 px-4 text-right font-medium ${
+                      darkMode ? "text-gray-300" : "text-gray-700"
+                    }`}
+                  >
+                    الدور
+                  </th>
+                  <th
+                    className={`py-3 px-4 text-right font-medium ${
+                      darkMode ? "text-gray-300" : "text-gray-700"
+                    }`}
+                  >
+                    القسم
+                  </th>
+                  <th
+                    className={`py-3 px-4 text-right font-medium ${
+                      darkMode ? "text-gray-300" : "text-gray-700"
+                    }`}
+                  >
+                    المنصب
+                  </th>
+                  <th
+                    className={`py-3 px-4 text-right font-medium ${
+                      darkMode ? "text-gray-300" : "text-gray-700"
+                    }`}
+                  >
+                    الحالة
+                  </th>
+                  <th
+                    className={`py-3 px-4 text-right font-medium ${
+                      darkMode ? "text-gray-300" : "text-gray-700"
+                    }`}
+                  >
+                    إجراءات
+                  </th>
                 </tr>
-              ))}
-            </tbody>
-          </table>
+              </thead>
+              <tbody>
+                {currentUsers.map((user, idx) => (
+                  <tr
+                    key={user._id}
+                    className={`text-sm border-b ${
+                      darkMode ? "border-gray-700" : "border-gray-200"
+                    } ${
+                      idx % 2 === 0
+                        ? darkMode
+                          ? "bg-gray-800/50"
+                          : "bg-gray-50"
+                        : ""
+                    } hover:${
+                      darkMode ? "bg-gray-700" : "bg-gray-100"
+                    } transition-colors`}
+                  >
+                    <td className="py-3 px-4 font-medium">{user.name}</td>
+                    <td className="py-3 px-4 text-gray-600 dark:text-gray-400">
+                      {user.email}
+                    </td>
+                    <td className="py-3 px-4">
+                      <span
+                        className={`capitalize px-2 py-1 rounded-lg text-xs font-medium ${
+                          user.role === "admin"
+                            ? "bg-red-100 text-red-700 dark:bg-red-900/20 dark:text-red-400"
+                            : user.role === "hr"
+                            ? "bg-blue-100 text-blue-700 dark:bg-blue-900/20 dark:text-blue-400"
+                            : "bg-green-100 text-green-700 dark:bg-green-900/20 dark:text-green-400"
+                        }`}
+                      >
+                        {user.role}
+                      </span>
+                    </td>
+                    <td className="py-3 px-4">
+                      {user.department?.name || "-"}
+                    </td>
+                    <td className="py-3 px-4">{user.position || "-"}</td>
+                    <td className="py-3 px-4">
+                      <span
+                        className={`text-xs font-medium px-3 py-1 rounded-full ${
+                          user.isActive
+                            ? "bg-green-100 text-green-700 dark:bg-green-900/20 dark:text-green-400"
+                            : "bg-red-100 text-red-700 dark:bg-red-900/20 dark:text-red-400"
+                        }`}
+                      >
+                        {user.isActive ? "نشط" : "غير نشط"}
+                      </span>
+                    </td>
+                    <td className="py-3 px-4">
+                      <div className="flex gap-2 justify-end">
+                        <IconButton
+                          color="blue"
+                          onClick={() => setViewUserId(user._id)}
+                          icon={<FaEye />}
+                          title="عرض"
+                        />
+
+                        <IconButton
+                          color="yellow"
+                          onClick={() => setEditUserId(user._id)}
+                          icon={<FaEdit />}
+                          title="تعديل"
+                        />
+
+                        <IconButton
+                          color="red"
+                          onClick={() => setUserToDelete(user)}
+                          icon={<FaTrash />}
+                          title="حذف"
+                        />
+
+                        <IconButton
+                          color="indigo"
+                          onClick={() =>
+                            onToggleActive(user._id, user.isActive)
+                          }
+                          icon={
+                            user.isActive ? <FaToggleOn /> : <FaToggleOff />
+                          }
+                          title={user.isActive ? "تعطيل" : "تفعيل"}
+                        />
+                      </div>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
           <div className="text-sm text-gray-600 dark:text-gray-300 mt-4 text-center">
             عرض {indexOfFirstUser + 1} -{" "}
             {Math.min(indexOfLastUser, users.length)} من أصل {users.length}{" "}

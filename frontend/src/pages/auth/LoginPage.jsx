@@ -2,14 +2,9 @@ import React, { useState, useEffect } from "react";
 import { useAuth } from "../../contexts/AuthContext";
 import { useTheme } from "../../contexts/ThemeContext";
 import {
-  FaUserAlt,
-  FaLock,
   FaSpinner,
   FaEye,
   FaEyeSlash,
-  FaGoogle,
-  FaFacebookF,
-  FaApple,
   FaShieldAlt,
   FaUsers,
   FaChartBar,
@@ -45,13 +40,6 @@ const LoginPage = () => {
   const [rememberMe, setRememberMe] = useState(false);
   const [loginAttempts, setLoginAttempts] = useState(0);
 
-  // تسجيل الدخول التجريبي
-  const demoAccounts = [
-    { role: "إداري", email: "admin@altrohr.com", password: "admin123" },
-    { role: "موظف", email: "employee@altrohr.com", password: "emp123" },
-    { role: "مدير", email: "manager@altrohr.com", password: "mgr123" },
-  ];
-
   // ✅ التوجيه إلى "/dashboard" إذا تم تسجيل الدخول
   useEffect(() => {
     if (user) {
@@ -85,23 +73,6 @@ const LoginPage = () => {
     } catch (err) {
       setLoginAttempts((prev) => prev + 1);
       setError("البريد الإلكتروني أو كلمة المرور غير صحيحة.");
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  // تسجيل دخول تجريبي
-  const handleDemoLogin = async (demoAccount) => {
-    setFormData({
-      email: demoAccount.email,
-      password: demoAccount.password,
-    });
-
-    setLoading(true);
-    try {
-      await login(demoAccount.email, demoAccount.password);
-    } catch (err) {
-      setError("حدث خطأ في تسجيل الدخول التجريبي");
     } finally {
       setLoading(false);
     }
@@ -249,7 +220,7 @@ const LoginPage = () => {
               ))}
             </motion.div>
 
-            {/* الحسابات التجريبية */}
+            {/* رسالة ترحيبية للمسؤولين */}
             <motion.div
               initial={{ opacity: 0, y: 30 }}
               animate={{ opacity: 1, y: 0 }}
@@ -263,33 +234,23 @@ const LoginPage = () => {
               <h3
                 className={`font-semibold mb-4 flex items-center gap-2 ${textColor}`}
               >
-                <FiUser className="text-indigo-500" />
-                جرب النظام مجاناً
+                <FaShieldAlt className="text-indigo-500" />
+                للمسؤولين والإداريين
               </h3>
-              <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-                {demoAccounts.map((account, index) => (
-                  <button
-                    key={index}
-                    onClick={() => handleDemoLogin(account)}
-                    disabled={loading}
-                    className={`
-                      p-3 rounded-lg text-center transition-all duration-300 border-2 border-dashed
-                      ${
-                        darkMode
-                          ? "border-gray-600 hover:border-indigo-500 bg-gray-700/50 hover:bg-gray-700"
-                          : "border-gray-300 hover:border-indigo-500 bg-gray-50 hover:bg-white"
-                      }
-                      hover:scale-105 press-effect
-                    `}
-                  >
-                    <div className={`font-medium ${textColor}`}>
-                      {account.role}
-                    </div>
-                    <div className={`text-xs ${subtextColor}`}>
-                      {account.email}
-                    </div>
-                  </button>
-                ))}
+              <p className={`text-sm ${subtextColor} mb-3`}>
+                إذا كنت مسؤولاً أو إدارياً، يمكنك تسجيل الدخول هنا لإدارة النظام
+                وإنشاء حسابات الموظفين الجدد.
+              </p>
+              <div
+                className={`text-xs ${subtextColor} bg-amber-50 dark:bg-amber-900/20 p-3 rounded-lg border-r-4 border-amber-400`}
+              >
+                <div className="font-medium text-amber-700 dark:text-amber-300 mb-1">
+                  ملاحظة هامة:
+                </div>
+                <div className="text-amber-600 dark:text-amber-400">
+                  إنشاء حسابات الموظفين الجدد يتم حصرياً من خلال المسؤولين
+                  المعتمدين في النظام.
+                </div>
               </div>
             </motion.div>
           </motion.div>
@@ -499,79 +460,21 @@ const LoginPage = () => {
                     </>
                   )}
                 </motion.button>
-
-                {/* فاصل */}
-                <div className="relative flex items-center justify-center my-6">
-                  <div className={`absolute inset-0 flex items-center`}>
-                    <div
-                      className={`w-full border-t ${
-                        darkMode ? "border-gray-700" : "border-gray-200"
-                      }`}
-                    ></div>
-                  </div>
-                  <div
-                    className={`relative px-4 text-sm ${subtextColor} ${
-                      darkMode ? "bg-gray-800" : "bg-white"
-                    }`}
-                  >
-                    أو
-                  </div>
-                </div>
-
-                {/* أزرار تسجيل الدخول الاجتماعية */}
-                <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-                  {[
-                    {
-                      icon: FaGoogle,
-                      name: "Google",
-                      color:
-                        "hover:bg-red-50 hover:border-red-200 hover:text-red-600",
-                    },
-                    {
-                      icon: FaFacebookF,
-                      name: "Facebook",
-                      color:
-                        "hover:bg-blue-50 hover:border-blue-200 hover:text-blue-600",
-                    },
-                    {
-                      icon: FaApple,
-                      name: "Apple",
-                      color:
-                        "hover:bg-gray-50 hover:border-gray-200 hover:text-gray-600",
-                    },
-                  ].map((social, index) => (
-                    <button
-                      key={index}
-                      type="button"
-                      className={`
-                        flex items-center justify-center gap-2 py-3 px-4 rounded-xl border-2 transition-all duration-300
-                        ${
-                          darkMode
-                            ? "border-gray-600 text-gray-300 hover:bg-gray-700 hover:border-gray-500"
-                            : "border-gray-200 text-gray-600"
-                        } ${social.color}
-                        transform hover:scale-105
-                      `}
-                    >
-                      <social.icon className="text-lg" />
-                      <span className="hidden sm:inline text-sm">
-                        {social.name}
-                      </span>
-                    </button>
-                  ))}
-                </div>
               </form>
 
-              {/* رابط إنشاء حساب */}
+              {/* رابط للمسؤولين */}
               <div className="text-center mt-8 pt-6 border-t border-gray-200 dark:border-gray-700">
                 <p className={`text-sm ${subtextColor}`}>
-                  لا تملك حساباً؟{" "}
+                  هل أنت مسؤول في النظام؟{" "}
                   <Link
-                    to="/register"
+                    to="/admin/register-employee"
                     className="text-indigo-600 hover:text-indigo-500 font-medium transition-colors"
                   >
-                    إنشاء حساب جديد
+                    إدارة حسابات الموظفين
                   </Link>
+                </p>
+                <p className={`text-xs ${subtextColor} mt-2`}>
+                  يمكن للمسؤولين فقط إنشاء حسابات جديدة للموظفين
                 </p>
               </div>
             </div>

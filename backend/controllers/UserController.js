@@ -263,6 +263,96 @@ const UserController = {
     // 🧾 إدارة المستخدمين (CRUD)
     // ============================
 
+    // إنشاء حساب موظف جديد (من المسؤولين)
+    async createEmployee(req, res) {
+        try {
+            const { name, email, password, department, position, role, phoneNumber, startDate } = req.body;
+
+            // التحقق من صحة البيانات المطلوبة
+            if (!name || !email || !password || !department || !position) {
+                return res.status(400).json({
+                    message: 'الرجاء إدخال جميع البيانات المطلوبة: الاسم، البريد الإلكتروني، كلمة المرور، القسم، المنصب'
+                });
+            }
+
+            // التحقق من أن المستخدم الحالي لديه صلاحية إنشاء حسابات
+            const currentUser = await User.findById(req.user.id);
+            if (!currentUser || (currentUser.role !== 'admin' && currentUser.role !== 'hr')) {
+                return res.status(403).json({
+                    message: 'غير مصرح لك بإنشاء حسابات الموظفين'
+                });
+            }
+
+            // التحقق من عدم وجود المستخدم
+            const existingUser = await User.findOne({ email });
+            if (existingUser) {
+                return res.status(400).json({
+                    message: 'البريد الإلكتروني مستخدم مسبقًا'
+                });
+            }
+
+            // البحث عن القسم
+            let departmentDoc = null;
+            if (department) {
+                const Department = require('../models/Department');
+                departmentDoc = await Department.findOne({ name: department });
+                if (!departmentDoc) {
+                    // إنشاء قسم جديد إذا لم يكن موجود
+                    departmentDoc = new Department({ name: department });
+                    await departmentDoc.save();
+                }
+            }
+
+            // إنشاء المستخدم الجديد
+            const userData = {
+                name: name.trim(),
+                email: email.trim().toLowerCase(),
+                password,
+                role: role || 'employee',
+                department: departmentDoc ? departmentDoc._id : null,
+                position: position.trim(),
+                phone: phoneNumber ? phoneNumber.trim() : undefined,
+                hireDate: startDate ? new Date(startDate) : new Date(),
+                isActive: true,
+                createdBy: req.user.id // تسجيل من قام بإنشاء الحساب
+            };
+
+            const newUser = new User(userData);
+            await newUser.save();
+
+            // إزالة كلمة المرور من الاستجابة
+            const userResponse = await User.findById(newUser._id)
+                .populate('department')
+                .select('-password');
+
+            res.status(201).json({
+                message: 'تم إنشاء حساب الموظف بنجاح',
+                user: userResponse,
+                createdBy: {
+                    id: currentUser._id,
+                    name: currentUser.name,
+                    role: currentUser.role
+                }
+            });
+
+        } catch (err) {
+            console.error('Create employee error:', err);
+
+            if (err.name === 'ValidationError') {
+                const validationErrors = Object.values(err.errors).map(e => e.message);
+                return res.status(400).json({
+                    message: 'خطأ في التحقق من البيانات',
+                    errors: validationErrors
+                });
+            }
+
+            res.status(500).json({
+                message: 'حدث خطأ في إنشاء حساب الموظف',
+                error: err.message
+            });
+        }
+    },
+
     async createUser(req, res) {
         try {
             const {

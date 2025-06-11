@@ -100,90 +100,94 @@ const UsersToolbar = ({
   };
 
   return (
-    <section className="w-full flex flex-col md:flex-row md:items-center justify-between gap-4 mb-6">
-      {/* 🔍 الفلاتر */}
-      <div className="flex flex-wrap gap-3 items-center w-full md:w-auto">
-        {/* مربع البحث */}
-        <div className="relative">
-          <FiSearch className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 dark:text-gray-500" />
-          <input
-            type="text"
-            placeholder="ابحث بالاسم أو البريد"
-            value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
-            className={`pl-10 pr-4 py-2 rounded-md border w-64 shadow-sm transition-all duration-200
+    <div className="w-full space-y-4">
+      {/* الفلاتر */}
+      <div className="flex flex-wrap gap-4 items-center justify-between">
+        <div className="flex flex-wrap gap-3 items-center">
+          {/* مربع البحث */}
+          <div className="relative">
+            <FiSearch className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 dark:text-gray-500" />
+            <input
+              type="text"
+              placeholder="ابحث بالاسم أو البريد"
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              className={`pl-10 pr-4 py-2 rounded-md border w-64 shadow-sm transition-all duration-200
               focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500
               ${
                 darkMode
                   ? "bg-gray-800 text-white border-gray-600 placeholder-gray-400"
                   : "bg-white text-gray-800 border-gray-300 placeholder-gray-500"
               }`}
+            />
+          </div>
+
+          {/* فلتر الدور */}
+          <Select
+            options={roleOptions}
+            placeholder="الدور"
+            className="w-40 text-sm"
+            styles={selectStyles}
+            isClearable
+            onChange={(selected) => {
+              setSelectedRole(selected);
+              onRoleFilter(selected?.value || "");
+            }}
+            value={selectedRole}
+          />
+
+          {/* فلتر القسم */}
+          <Select
+            options={departments}
+            placeholder="القسم"
+            className="w-48 text-sm"
+            styles={selectStyles}
+            isClearable
+            onChange={(selected) => {
+              setSelectedDepartment(selected);
+              onDepartmentFilter(selected?.value || "");
+            }}
+            value={selectedDepartment}
+          />
+
+          {/* فلتر الحالة */}
+          <Select
+            options={statusOptions}
+            placeholder="الحالة"
+            className="w-40 text-sm"
+            styles={selectStyles}
+            isClearable
+            onChange={(selected) => {
+              setSelectedStatus(selected);
+              onStatusFilter(selected?.value || "");
+            }}
+            value={selectedStatus}
           />
         </div>
 
-        {/* فلتر الدور */}
-        <Select
-          options={roleOptions}
-          placeholder="الدور"
-          className="w-40 text-sm"
-          styles={selectStyles}
-          isClearable
-          onChange={(selected) => {
-            setSelectedRole(selected);
-            onRoleFilter(selected?.value || "");
-          }}
-          value={selectedRole}
-        />
-
-        {/* فلتر القسم */}
-        <Select
-          options={departments}
-          placeholder="القسم"
-          className="w-48 text-sm"
-          styles={selectStyles}
-          isClearable
-          onChange={(selected) => {
-            setSelectedDepartment(selected);
-            onDepartmentFilter(selected?.value || "");
-          }}
-          value={selectedDepartment}
-        />
-
-        {/* فلتر الحالة */}
-        <Select
-          options={statusOptions}
-          placeholder="الحالة"
-          className="w-40 text-sm"
-          styles={selectStyles}
-          isClearable
-          onChange={(selected) => {
-            setSelectedStatus(selected);
-            onStatusFilter(selected?.value || "");
-          }}
-          value={selectedStatus}
-        />
+        {/* زر إضافة مستخدم جديد */}
+        <button
+          onClick={() => setShowAddModal(true)}
+          className="flex items-center justify-center gap-2 bg-blue-600 hover:bg-blue-700 
+                     text-white px-5 py-2 rounded-lg shadow-sm transition-all duration-200"
+        >
+          <FaUserPlus className="text-base" />
+          <span className="hidden sm:inline-block font-medium">
+            إضافة مستخدم
+          </span>
+        </button>
       </div>
-
-      {/* ➕ زر إضافة مستخدم جديد */}
-      <button
-        onClick={() => setShowAddModal(true)}
-        className="flex items-center justify-center gap-2 bg-indigo-600 hover:bg-indigo-700 
-                   text-white px-5 py-2 rounded-md shadow-sm transition-all duration-200"
-      >
-        <FaUserPlus className="text-base" />
-        <span className="hidden sm:inline-block font-medium">إضافة مستخدم</span>
-      </button>
 
       {/* نافذة إضافة المستخدم */}
       <AddUserModal
         isOpen={showAddModal}
         onClose={() => setShowAddModal(false)}
         onSuccess={() => {
-          onAddUser(); // يتم تفعيل إعادة التحميل بعد نجاح الإضافة
-          setShowAddModal(false); // إغلاق المودال
+          onAddUser();
+          setShowAddModal(false);
         }}
       />
-    </section>
+    </div>
   );
 };
 
