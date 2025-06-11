@@ -1,4 +1,11 @@
-import React, { createContext, useContext, useEffect, useState } from "react";
+import React, {
+  createContext,
+  useContext,
+  useEffect,
+  useState,
+  useMemo,
+  useCallback,
+} from "react";
 
 const AuthContext = createContext();
 
@@ -15,19 +22,25 @@ const AuthProvider = ({ children }) => {
         const now = new Date().getTime();
 
         if (parsed.token && parsed.user && parsed.expiry > now) {
-          setUser({ token: parsed.token, user: parsed.user });
+          // إنشاء object مرة واحدة فقط
+          const userData = { token: parsed.token, user: parsed.user };
+          setUser(userData);
         } else {
           localStorage.removeItem("authData");
+          setUser(null);
         }
       } catch (err) {
         console.error("فشل في قراءة بيانات الجلسة:", err);
         localStorage.removeItem("authData");
+        setUser(null);
       }
+    } else {
+      setUser(null);
     }
   }, []);
 
-  // تسجيل الدخول
-  const login = async (email, password) => {
+  // تسجيل الدخول - استخدام useCallback لتثبيت الدالة
+  const login = useCallback(async (email, password) => {
     const res = await fetch(`${import.meta.env.VITE_API_URL}/api/user/login`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
@@ -46,19 +59,29 @@ const AuthProvider = ({ children }) => {
     };
 
     localStorage.setItem("authData", JSON.stringify(authData));
-    setUser({ token: data.token, user: data.user });
-  };
+    // إنشاء object مرة واحدة فقط
+    const userData = { token: data.token, user: data.user };
+    setUser(userData);
+  }, []);
 
-  // تسجيل الخروج
-  const logout = () => {
+  // تسجيل الخروج - استخدام useCallback لتثبيت الدالة
+  const logout = useCallback(() => {
     localStorage.removeItem("authData");
     setUser(null);
-  };
+  }, []);
+
+  // استخدام useMemo لتثبيت context value
+  const contextValue = useMemo(
+    () => ({
+      user,
+      login,
+      logout,
+    }),
+    [user, login, logout]
+  );
 
   return (
-    <AuthContext.Provider value={{ user, login, logout }}>
-      {children}
-    </AuthContext.Provider>
+    <AuthContext.Provider value={contextValue}>{children}</AuthContext.Provider>
   );
 };
 

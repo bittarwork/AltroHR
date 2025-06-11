@@ -1,231 +1,182 @@
 import React, { useState, useEffect } from "react";
 import { useTheme } from "../../contexts/ThemeContext";
+import { useAuth } from "../../contexts/AuthContext";
 import { motion } from "framer-motion";
+import axios from "axios";
 import {
   FiBarChart2,
-  FiPieChart,
-  FiTrendingUp,
   FiUsers,
-  FiShield,
-  FiMonitor,
-  FiDownload,
-  FiFilter,
-  FiCalendar,
-  FiFileText,
-  FiActivity,
-  FiDatabase,
   FiClock,
+  FiFileText,
   FiRefreshCw,
   FiEye,
+  FiCalendar,
+  FiSettings,
 } from "react-icons/fi";
 
 const ReportsTab = () => {
   const { darkMode } = useTheme();
-  const [selectedCategory, setSelectedCategory] = useState("system");
+  const { user } = useAuth();
+  const [selectedCategory, setSelectedCategory] = useState("employees");
   const [loading, setLoading] = useState(false);
+  const [reports, setReports] = useState([]);
+  const [reportStats, setReportStats] = useState(null);
+  const [dateRange, setDateRange] = useState({
+    startDate: new Date(Date.now() - 30 * 24 * 60 * 60 * 1000)
+      .toISOString()
+      .split("T")[0],
+    endDate: new Date().toISOString().split("T")[0],
+  });
 
   const reportCategories = [
     {
-      id: "system",
-      label: "تقارير النظام",
-      icon: FiMonitor,
-      color: "blue",
-      count: 8,
-    },
-    {
-      id: "users",
-      label: "تقارير المستخدمين",
+      id: "employees",
+      label: "تقارير الموظفين",
       icon: FiUsers,
+      color: "blue",
+      functional: true,
+      description: "تقارير شاملة عن الموظفين والأقسام",
+    },
+    {
+      id: "attendance",
+      label: "تقارير الحضور",
+      icon: FiClock,
       color: "green",
-      count: 12,
-    },
-    {
-      id: "security",
-      label: "تقارير الأمان",
-      icon: FiShield,
-      color: "red",
-      count: 6,
-    },
-    {
-      id: "analytics",
-      label: "تقارير التحليلات",
-      icon: FiBarChart2,
-      color: "purple",
-      count: 10,
+      functional: true,
+      description: "تقارير الحضور والانصراف والساعات",
     },
   ];
 
-  const systemReports = [
-    {
-      id: 1,
-      name: "تقرير أداء النظام",
-      description: "تحليل مفصل لأداء النظام والخوادم",
-      lastUpdated: "2024-01-15 09:30:00",
-      format: ["PDF", "Excel", "JSON"],
-      frequency: "يومي",
-      status: "مكتمل",
-      size: "2.5 MB",
+  const functionalReports = {
+    employees: {
+      name: "تقرير الموظفين",
+      description: "تقرير شامل عن جميع الموظفين بالنظام",
+      endpoint: "/api/admin-reports/generate/employees",
+      params: ["startDate", "endDate", "departmentId"],
+      formats: ["JSON", "PDF"],
+      realTime: true,
     },
-    {
-      id: 2,
-      name: "تقرير استخدام قاعدة البيانات",
-      description: "إحصائيات الاستعلامات والتخزين",
-      lastUpdated: "2024-01-15 08:45:00",
-      format: ["PDF", "Excel"],
-      frequency: "أسبوعي",
-      status: "قيد التنفيذ",
-      size: "1.8 MB",
+    attendance: {
+      name: "تقرير الحضور والانصراف",
+      description: "تقرير مفصل عن حضور الموظفين",
+      endpoint: "/api/admin-reports/generate/attendance",
+      params: ["startDate", "endDate", "departmentId"],
+      formats: ["JSON", "PDF", "Excel"],
+      realTime: true,
     },
-    {
-      id: 3,
-      name: "تقرير النسخ الاحتياطية",
-      description: "حالة وسجل النسخ الاحتياطية",
-      lastUpdated: "2024-01-15 07:00:00",
-      format: ["PDF", "CSV"],
-      frequency: "يومي",
-      status: "مكتمل",
-      size: "950 KB",
-    },
-    {
-      id: 4,
-      name: "تقرير الأخطاء والتحذيرات",
-      description: "سجل مفصل للأخطاء والتحذيرات",
-      lastUpdated: "2024-01-15 06:30:00",
-      format: ["PDF", "JSON"],
-      frequency: "يومي",
-      status: "مكتمل",
-      size: "3.2 MB",
-    },
-  ];
-
-  const userReports = [
-    {
-      id: 5,
-      name: "تقرير نشاط المستخدمين",
-      description: "تحليل نشاط وسلوك المستخدمين",
-      lastUpdated: "2024-01-15 09:15:00",
-      format: ["PDF", "Excel", "CSV"],
-      frequency: "يومي",
-      status: "مكتمل",
-      size: "4.1 MB",
-    },
-    {
-      id: 6,
-      name: "تقرير المستخدمين الجدد",
-      description: "إحصائيات التسجيل والمستخدمين الجدد",
-      lastUpdated: "2024-01-15 08:30:00",
-      format: ["PDF", "Excel"],
-      frequency: "أسبوعي",
-      status: "مكتمل",
-      size: "1.2 MB",
-    },
-    {
-      id: 7,
-      name: "تقرير الأدوار والصلاحيات",
-      description: "توزيع الأدوار والصلاحيات",
-      lastUpdated: "2024-01-15 07:45:00",
-      format: ["PDF", "Excel"],
-      frequency: "شهري",
-      status: "مكتمل",
-      size: "880 KB",
-    },
-  ];
-
-  const securityReports = [
-    {
-      id: 8,
-      name: "تقرير محاولات تسجيل الدخول",
-      description: "تحليل محاولات تسجيل الدخول الناجحة والفاشلة",
-      lastUpdated: "2024-01-15 09:00:00",
-      format: ["PDF", "Excel", "JSON"],
-      frequency: "يومي",
-      status: "مكتمل",
-      size: "2.8 MB",
-    },
-    {
-      id: 9,
-      name: "تقرير الجلسات النشطة",
-      description: "تحليل الجلسات النشطة والخاملة",
-      lastUpdated: "2024-01-15 08:15:00",
-      format: ["PDF", "CSV"],
-      frequency: "يومي",
-      status: "مكتمل",
-      size: "1.5 MB",
-    },
-    {
-      id: 10,
-      name: "تقرير سجل التدقيق",
-      description: "سجل مفصل لجميع العمليات الإدارية",
-      lastUpdated: "2024-01-15 07:30:00",
-      format: ["PDF", "JSON"],
-      frequency: "يومي",
-      status: "مكتمل",
-      size: "5.2 MB",
-    },
-  ];
-
-  const analyticsReports = [
-    {
-      id: 11,
-      name: "تقرير الاستخدام العام",
-      description: "تحليل شامل لاستخدام النظام",
-      lastUpdated: "2024-01-15 09:45:00",
-      format: ["PDF", "Excel", "PowerBI"],
-      frequency: "أسبوعي",
-      status: "مكتمل",
-      size: "6.3 MB",
-    },
-    {
-      id: 12,
-      name: "تقرير الأداء والكفاءة",
-      description: "مقاييس الأداء والكفاءة",
-      lastUpdated: "2024-01-15 08:00:00",
-      format: ["PDF", "Excel"],
-      frequency: "شهري",
-      status: "مكتمل",
-      size: "3.7 MB",
-    },
-  ];
-
-  const getReportsByCategory = (category) => {
-    switch (category) {
-      case "system":
-        return systemReports;
-      case "users":
-        return userReports;
-      case "security":
-        return securityReports;
-      case "analytics":
-        return analyticsReports;
-      default:
-        return systemReports;
-    }
   };
 
-  const getStatusColor = (status) => {
-    switch (status) {
-      case "مكتمل":
-        return "green";
-      case "قيد التنفيذ":
-        return "yellow";
-      case "فشل":
-        return "red";
-      default:
-        return "gray";
-    }
-  };
+  const developmentReports = {};
 
-  const generateReport = (reportId) => {
+  // تحميل التقارير المولدة
+  const loadReports = async () => {
+    if (!user?.token) return;
+
     setLoading(true);
-    // Simulate report generation
-    setTimeout(() => {
+    try {
+      const response = await axios.get(
+        `${
+          import.meta.env.VITE_API_URL
+        }/api/admin-reports?category=${selectedCategory}`,
+        {
+          headers: { Authorization: `Bearer ${user.token}` },
+        }
+      );
+
+      setReports(response.data.reports || []);
+    } catch (error) {
+      console.error("فشل في تحميل التقارير:", error);
+      setReports([]);
+    } finally {
       setLoading(false);
-      alert("تم إنشاء التقرير بنجاح!");
-    }, 2000);
+    }
   };
 
-  const downloadReport = (reportId, format) => {
-    alert(`تم تحميل التقرير بصيغة ${format}`);
+  // تحميل إحصائيات التقارير
+  const loadReportStats = async () => {
+    if (!user?.token) return;
+
+    try {
+      const response = await axios.get(
+        `${import.meta.env.VITE_API_URL}/api/admin-reports/statistics/overview`,
+        {
+          headers: { Authorization: `Bearer ${user.token}` },
+        }
+      );
+
+      setReportStats(response.data);
+    } catch (error) {
+      console.error("فشل في تحميل إحصائيات التقارير:", error);
+    }
+  };
+
+  // إنشاء تقرير جديد
+  const generateReport = async (category) => {
+    if (!functionalReports[category]) {
+      alert("هذا التقرير قيد التطوير حالياً");
+      return;
+    }
+
+    setLoading(true);
+    try {
+      const reportConfig = functionalReports[category];
+      const response = await axios.post(
+        `${import.meta.env.VITE_API_URL}${reportConfig.endpoint}`,
+        {
+          startDate: dateRange.startDate,
+          endDate: dateRange.endDate,
+        },
+        {
+          headers: { Authorization: `Bearer ${user.token}` },
+        }
+      );
+
+      alert("تم إنشاء التقرير بنجاح!");
+      loadReports(); // إعادة تحميل التقارير
+    } catch (error) {
+      console.error("فشل في إنشاء التقرير:", error);
+      alert("فشل في إنشاء التقرير");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // عرض تقرير
+  const viewReport = async (reportId) => {
+    try {
+      const response = await axios.get(
+        `${import.meta.env.VITE_API_URL}/api/admin-reports/${reportId}`,
+        {
+          headers: { Authorization: `Bearer ${user.token}` },
+        }
+      );
+
+      // عرض التقرير في نافذة جديدة أو modal
+      console.log("بيانات التقرير:", response.data);
+      alert("تم تحميل التقرير - راجع console للبيانات");
+    } catch (error) {
+      console.error("فشل في عرض التقرير:", error);
+      alert("فشل في عرض التقرير");
+    }
+  };
+
+  useEffect(() => {
+    if (user?.token) {
+      loadReports();
+      loadReportStats();
+    }
+  }, [selectedCategory, user?.token]);
+
+  const formatDate = (dateString) => {
+    return new Date(dateString).toLocaleDateString("ar-SA");
+  };
+
+  const formatFileSize = (bytes) => {
+    if (!bytes) return "0 KB";
+    const kb = bytes / 1024;
+    if (kb < 1024) return `${Math.round(kb)} KB`;
+    const mb = kb / 1024;
+    return `${Math.round(mb * 100) / 100} MB`;
   };
 
   return (
@@ -248,33 +199,178 @@ const ReportsTab = () => {
                 darkMode ? "text-gray-400" : "text-gray-600"
               }`}
             >
-              إنشاء وتحميل التقارير الإدارية والتحليلية
+              إنشاء وإدارة التقارير الإدارية والتحليلية
             </p>
           </div>
-          <div className="flex space-x-3 space-x-reverse">
+
+          <div className="flex items-center space-x-3 space-x-reverse">
+            {/* نطاق التاريخ */}
+            <div className="flex items-center space-x-2 space-x-reverse">
+              <input
+                type="date"
+                value={dateRange.startDate}
+                onChange={(e) =>
+                  setDateRange((prev) => ({
+                    ...prev,
+                    startDate: e.target.value,
+                  }))
+                }
+                className={`px-3 py-2 rounded-lg text-sm ${
+                  darkMode
+                    ? "bg-gray-800 text-white border-gray-700"
+                    : "bg-white border-gray-300"
+                } border focus:ring-2 focus:ring-blue-500`}
+              />
+              <span className={darkMode ? "text-gray-400" : "text-gray-600"}>
+                إلى
+              </span>
+              <input
+                type="date"
+                value={dateRange.endDate}
+                onChange={(e) =>
+                  setDateRange((prev) => ({ ...prev, endDate: e.target.value }))
+                }
+                className={`px-3 py-2 rounded-lg text-sm ${
+                  darkMode
+                    ? "bg-gray-800 text-white border-gray-700"
+                    : "bg-white border-gray-300"
+                } border focus:ring-2 focus:ring-blue-500`}
+              />
+            </div>
+
             <button
-              onClick={() => setLoading(true)}
+              onClick={loadReports}
+              disabled={loading}
               className={`flex items-center space-x-2 space-x-reverse px-4 py-2 rounded-lg font-medium ${
                 loading ? "opacity-50 cursor-not-allowed" : ""
               } bg-blue-600 hover:bg-blue-700 text-white`}
-              disabled={loading}
             >
               <FiRefreshCw className={loading ? "animate-spin" : ""} />
-              <span>تحديث جميع التقارير</span>
+              <span>تحديث</span>
             </button>
           </div>
         </div>
 
-        {/* Category Navigation */}
+        {/* إحصائيات سريعة */}
+        {reportStats && (
+          <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+            <div
+              className={`p-4 rounded-lg ${
+                darkMode ? "bg-gray-800" : "bg-white"
+              } shadow`}
+            >
+              <div className="flex items-center">
+                <FiFileText className="text-2xl text-blue-500 mr-3" />
+                <div>
+                  <p
+                    className={`text-sm ${
+                      darkMode ? "text-gray-400" : "text-gray-600"
+                    }`}
+                  >
+                    إجمالي التقارير
+                  </p>
+                  <p
+                    className={`text-2xl font-bold ${
+                      darkMode ? "text-white" : "text-gray-900"
+                    }`}
+                  >
+                    {reportStats.total || 0}
+                  </p>
+                </div>
+              </div>
+            </div>
+
+            <div
+              className={`p-4 rounded-lg ${
+                darkMode ? "bg-gray-800" : "bg-white"
+              } shadow`}
+            >
+              <div className="flex items-center">
+                <FiCalendar className="text-2xl text-green-500 mr-3" />
+                <div>
+                  <p
+                    className={`text-sm ${
+                      darkMode ? "text-gray-400" : "text-gray-600"
+                    }`}
+                  >
+                    هذا الأسبوع
+                  </p>
+                  <p
+                    className={`text-2xl font-bold ${
+                      darkMode ? "text-white" : "text-gray-900"
+                    }`}
+                  >
+                    {reportStats.recentWeek || 0}
+                  </p>
+                </div>
+              </div>
+            </div>
+
+            <div
+              className={`p-4 rounded-lg ${
+                darkMode ? "bg-gray-800" : "bg-white"
+              } shadow`}
+            >
+              <div className="flex items-center">
+                <FiBarChart2 className="text-2xl text-purple-500 mr-3" />
+                <div>
+                  <p
+                    className={`text-sm ${
+                      darkMode ? "text-gray-400" : "text-gray-600"
+                    }`}
+                  >
+                    الفئات النشطة
+                  </p>
+                  <p
+                    className={`text-2xl font-bold ${
+                      darkMode ? "text-white" : "text-gray-900"
+                    }`}
+                  >
+                    {reportStats.byCategory?.length || 0}
+                  </p>
+                </div>
+              </div>
+            </div>
+
+            <div
+              className={`p-4 rounded-lg ${
+                darkMode ? "bg-gray-800" : "bg-white"
+              } shadow`}
+            >
+              <div className="flex items-center">
+                <FiSettings className="text-2xl text-orange-500 mr-3" />
+                <div>
+                  <p
+                    className={`text-sm ${
+                      darkMode ? "text-gray-400" : "text-gray-600"
+                    }`}
+                  >
+                    الفئات النشطة
+                  </p>
+                  <p
+                    className={`text-2xl font-bold ${
+                      darkMode ? "text-white" : "text-gray-900"
+                    }`}
+                  >
+                    2
+                  </p>
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* فئات التقارير */}
         <div
           className={`${
             darkMode ? "bg-gray-800" : "bg-white"
           } rounded-xl shadow-lg p-2`}
         >
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-2">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
             {reportCategories.map((category) => {
               const Icon = category.icon;
               const isActive = selectedCategory === category.id;
+              const isFunctional = category.functional;
 
               return (
                 <motion.button
@@ -282,7 +378,7 @@ const ReportsTab = () => {
                   whileHover={{ scale: 1.02 }}
                   whileTap={{ scale: 0.98 }}
                   onClick={() => setSelectedCategory(category.id)}
-                  className={`p-4 rounded-lg transition-all duration-200 text-center ${
+                  className={`p-4 rounded-lg transition-all duration-200 text-center relative ${
                     isActive
                       ? `bg-${category.color}-500 text-white shadow-lg shadow-${category.color}-500/30`
                       : `text-${category.color}-600 dark:text-${category.color}-400 hover:bg-${category.color}-50 dark:hover:bg-${category.color}-900/20`
@@ -300,7 +396,7 @@ const ReportsTab = () => {
                         : "text-gray-500 dark:text-gray-400"
                     }`}
                   >
-                    {category.count} تقرير
+                    {category.description}
                   </div>
                 </motion.button>
               );
@@ -308,209 +404,169 @@ const ReportsTab = () => {
           </div>
         </div>
 
-        {/* Reports Grid */}
+        {/* محتوى التقارير */}
         <motion.div
           key={selectedCategory}
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.3 }}
-          className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6"
         >
-          {getReportsByCategory(selectedCategory).map((report, index) => (
-            <motion.div
-              key={report.id}
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: index * 0.1 }}
-              className={`${
-                darkMode ? "bg-gray-800" : "bg-white"
-              } rounded-xl shadow-lg p-6 hover:shadow-xl transition-shadow duration-300`}
-            >
-              <div className="flex items-start justify-between mb-4">
-                <div className="flex-1">
-                  <h3
-                    className={`text-lg font-semibold ${
-                      darkMode ? "text-white" : "text-gray-900"
-                    } mb-2`}
-                  >
-                    {report.name}
-                  </h3>
-                  <p
-                    className={`text-sm ${
-                      darkMode ? "text-gray-400" : "text-gray-600"
-                    } mb-3`}
-                  >
-                    {report.description}
-                  </p>
-                </div>
-                <div
-                  className={`p-2 rounded-lg ${
-                    reportCategories.find((c) => c.id === selectedCategory)
-                      ?.color === "blue"
-                      ? "bg-blue-100 dark:bg-blue-900/20"
-                      : reportCategories.find((c) => c.id === selectedCategory)
-                          ?.color === "green"
-                      ? "bg-green-100 dark:bg-green-900/20"
-                      : reportCategories.find((c) => c.id === selectedCategory)
-                          ?.color === "red"
-                      ? "bg-red-100 dark:bg-red-900/20"
-                      : "bg-purple-100 dark:bg-purple-900/20"
+          {/* التقارير الوظيفية */}
+          {reportCategories.find((c) => c.id === selectedCategory)
+            ?.functional && (
+            <div className="space-y-6">
+              {/* إنشاء تقرير جديد */}
+              <div
+                className={`${
+                  darkMode ? "bg-gray-800" : "bg-white"
+                } rounded-xl shadow-lg p-6`}
+              >
+                <h3
+                  className={`text-lg font-semibold mb-4 ${
+                    darkMode ? "text-white" : "text-gray-900"
                   }`}
                 >
-                  <FiFileText
-                    className={`${
-                      reportCategories.find((c) => c.id === selectedCategory)
-                        ?.color === "blue"
-                        ? "text-blue-600 dark:text-blue-400"
-                        : reportCategories.find(
-                            (c) => c.id === selectedCategory
-                          )?.color === "green"
-                        ? "text-green-600 dark:text-green-400"
-                        : reportCategories.find(
-                            (c) => c.id === selectedCategory
-                          )?.color === "red"
-                        ? "text-red-600 dark:text-red-400"
-                        : "text-purple-600 dark:text-purple-400"
-                    }`}
-                  />
-                </div>
-              </div>
-
-              {/* Report Info */}
-              <div className="space-y-3 mb-4">
-                <div className="flex items-center justify-between">
-                  <span
-                    className={`text-sm ${
-                      darkMode ? "text-gray-400" : "text-gray-600"
-                    }`}
-                  >
-                    آخر تحديث:
-                  </span>
-                  <span
-                    className={`text-sm font-medium ${
-                      darkMode ? "text-white" : "text-gray-900"
-                    }`}
-                  >
-                    {report.lastUpdated}
-                  </span>
-                </div>
+                  إنشاء تقرير جديد
+                </h3>
 
                 <div className="flex items-center justify-between">
-                  <span
-                    className={`text-sm ${
-                      darkMode ? "text-gray-400" : "text-gray-600"
-                    }`}
-                  >
-                    التكرار:
-                  </span>
-                  <span
-                    className={`text-sm font-medium ${
-                      darkMode ? "text-white" : "text-gray-900"
-                    }`}
-                  >
-                    {report.frequency}
-                  </span>
-                </div>
-
-                <div className="flex items-center justify-between">
-                  <span
-                    className={`text-sm ${
-                      darkMode ? "text-gray-400" : "text-gray-600"
-                    }`}
-                  >
-                    الحجم:
-                  </span>
-                  <span
-                    className={`text-sm font-medium ${
-                      darkMode ? "text-white" : "text-gray-900"
-                    }`}
-                  >
-                    {report.size}
-                  </span>
-                </div>
-
-                <div className="flex items-center justify-between">
-                  <span
-                    className={`text-sm ${
-                      darkMode ? "text-gray-400" : "text-gray-600"
-                    }`}
-                  >
-                    الحالة:
-                  </span>
-                  <span
-                    className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-${getStatusColor(
-                      report.status
-                    )}-100 dark:bg-${getStatusColor(
-                      report.status
-                    )}-900/20 text-${getStatusColor(
-                      report.status
-                    )}-600 dark:text-${getStatusColor(report.status)}-400`}
-                  >
-                    {report.status}
-                  </span>
-                </div>
-              </div>
-
-              {/* Format Options */}
-              <div className="mb-4">
-                <span
-                  className={`text-sm font-medium ${
-                    darkMode ? "text-gray-300" : "text-gray-700"
-                  } mb-2 block`}
-                >
-                  الصيغ المتاحة:
-                </span>
-                <div className="flex flex-wrap gap-2">
-                  {report.format.map((format) => (
-                    <span
-                      key={format}
-                      className={`px-2 py-1 rounded text-xs font-medium ${
-                        darkMode
-                          ? "bg-gray-700 text-gray-300"
-                          : "bg-gray-100 text-gray-700"
+                  <div>
+                    <h4
+                      className={`font-medium ${
+                        darkMode ? "text-white" : "text-gray-900"
                       }`}
                     >
-                      {format}
-                    </span>
-                  ))}
+                      {functionalReports[selectedCategory]?.name}
+                    </h4>
+                    <p
+                      className={`text-sm ${
+                        darkMode ? "text-gray-400" : "text-gray-600"
+                      }`}
+                    >
+                      {functionalReports[selectedCategory]?.description}
+                    </p>
+                  </div>
+
+                  <button
+                    onClick={() => generateReport(selectedCategory)}
+                    disabled={loading}
+                    className={`flex items-center space-x-2 space-x-reverse px-6 py-3 rounded-lg font-medium ${
+                      loading ? "opacity-50 cursor-not-allowed" : ""
+                    } bg-blue-600 hover:bg-blue-700 text-white`}
+                  >
+                    <FiBarChart2 className={loading ? "animate-spin" : ""} />
+                    <span>إنشاء التقرير</span>
+                  </button>
                 </div>
               </div>
 
-              {/* Actions */}
-              <div className="flex space-x-2 space-x-reverse">
-                <button
-                  onClick={() => generateReport(report.id)}
-                  className="flex-1 flex items-center justify-center space-x-2 space-x-reverse px-3 py-2 rounded-lg text-sm font-medium bg-blue-600 hover:bg-blue-700 text-white transition-colors"
+              {/* التقارير المولدة */}
+              <div
+                className={`${
+                  darkMode ? "bg-gray-800" : "bg-white"
+                } rounded-xl shadow-lg p-6`}
+              >
+                <h3
+                  className={`text-lg font-semibold mb-4 ${
+                    darkMode ? "text-white" : "text-gray-900"
+                  }`}
                 >
-                  <FiRefreshCw className={loading ? "animate-spin" : ""} />
-                  <span>إنشاء</span>
-                </button>
+                  التقارير المولدة مؤخراً
+                </h3>
 
-                <div className="relative group">
-                  <button className="flex items-center justify-center px-3 py-2 rounded-lg text-sm font-medium bg-green-600 hover:bg-green-700 text-white transition-colors">
-                    <FiDownload />
-                  </button>
-
-                  {/* Download Dropdown */}
-                  <div className="absolute right-0 mt-2 w-32 bg-white dark:bg-gray-800 rounded-lg shadow-lg border border-gray-200 dark:border-gray-700 opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 z-10">
-                    {report.format.map((format) => (
-                      <button
-                        key={format}
-                        onClick={() => downloadReport(report.id, format)}
-                        className="w-full text-right px-3 py-2 text-sm hover:bg-gray-50 dark:hover:bg-gray-700 text-gray-700 dark:text-gray-300 first:rounded-t-lg last:rounded-b-lg"
+                {loading ? (
+                  <div className="text-center py-8">
+                    <FiRefreshCw className="animate-spin text-3xl mx-auto mb-4 text-blue-500" />
+                    <p className={darkMode ? "text-gray-400" : "text-gray-600"}>
+                      جاري تحميل التقارير...
+                    </p>
+                  </div>
+                ) : reports.length > 0 ? (
+                  <div className="space-y-4">
+                    {reports.map((report) => (
+                      <div
+                        key={report._id}
+                        className={`border rounded-lg p-4 ${
+                          darkMode
+                            ? "border-gray-700 bg-gray-700/50"
+                            : "border-gray-200 bg-gray-50"
+                        }`}
                       >
-                        {format}
-                      </button>
+                        <div className="flex items-center justify-between">
+                          <div>
+                            <h4
+                              className={`font-medium ${
+                                darkMode ? "text-white" : "text-gray-900"
+                              }`}
+                            >
+                              {report.name}
+                            </h4>
+                            <p
+                              className={`text-sm ${
+                                darkMode ? "text-gray-400" : "text-gray-600"
+                              }`}
+                            >
+                              {report.description}
+                            </p>
+                            <div className="flex items-center space-x-4 space-x-reverse mt-2 text-xs">
+                              <span
+                                className={
+                                  darkMode ? "text-gray-400" : "text-gray-600"
+                                }
+                              >
+                                تم الإنشاء: {formatDate(report.generatedAt)}
+                              </span>
+                              <span
+                                className={
+                                  darkMode ? "text-gray-400" : "text-gray-600"
+                                }
+                              >
+                                الحجم: {formatFileSize(report.fileSize)}
+                              </span>
+                              <span
+                                className={
+                                  darkMode ? "text-gray-400" : "text-gray-600"
+                                }
+                              >
+                                السجلات: {report.summary?.totalRecords || 0}
+                              </span>
+                            </div>
+                          </div>
+
+                          <div className="flex items-center space-x-2 space-x-reverse">
+                            <span className="inline-flex items-center px-2 py-1 rounded-full text-xs bg-green-100 dark:bg-green-900/20 text-green-600 dark:text-green-400">
+                              مكتمل
+                            </span>
+
+                            <button
+                              onClick={() => viewReport(report._id)}
+                              className="p-2 rounded-lg bg-blue-600 hover:bg-blue-700 text-white"
+                            >
+                              <FiEye />
+                            </button>
+                          </div>
+                        </div>
+                      </div>
                     ))}
                   </div>
-                </div>
-
-                <button className="flex items-center justify-center px-3 py-2 rounded-lg text-sm font-medium bg-gray-600 hover:bg-gray-700 text-white transition-colors">
-                  <FiEye />
-                </button>
+                ) : (
+                  <div className="text-center py-8">
+                    <FiFileText className="text-4xl mx-auto mb-4 text-gray-400" />
+                    <p className={darkMode ? "text-gray-400" : "text-gray-600"}>
+                      لا توجد تقارير متاحة حالياً
+                    </p>
+                    <p
+                      className={`text-sm mt-2 ${
+                        darkMode ? "text-gray-500" : "text-gray-500"
+                      }`}
+                    >
+                      قم بإنشاء تقرير جديد لرؤية النتائج هنا
+                    </p>
+                  </div>
+                )}
               </div>
-            </motion.div>
-          ))}
+            </div>
+          )}
         </motion.div>
       </div>
     </div>

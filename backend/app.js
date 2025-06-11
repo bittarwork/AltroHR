@@ -11,6 +11,10 @@ const leaveRoutes = require('./routes/leaveRoutes');
 const salaryRoutes = require('./routes/salaryRoutes');
 const performanceNoteRoutes = require('./routes/performanceNoteRoutes');
 const monthlyReportRoutes = require('./routes/monthlyReportRoutes');
+const systemStatsRoutes = require('./routes/systemStatsRoutes');
+const systemSettingsRoutes = require('./routes/systemSettingsRoutes');
+const reportsRoutes = require('./routes/reportsRoutes');
+const { maintenanceMode, registrationPolicy } = require('./middleware/systemSettingsMiddleware');
 
 const notFound = require('./middleware/notFound');
 const errorHandler = require('./middleware/errorHandler');
@@ -23,6 +27,10 @@ app.use(morgan('dev'));
 // إضافة خدمة الملفات الثابتة للصور
 app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 
+// System Settings Middleware - تطبيق إعدادات النظام
+app.use(maintenanceMode); // التحقق من وضع الصيانة
+app.use(registrationPolicy); // التحقق من سياسة التسجيل
+
 // API Routes
 app.use('/api/departments', departmentRoutes);
 app.use('/api/user/', userRoutes);
@@ -31,6 +39,9 @@ app.use('/api/leaves', leaveRoutes);
 app.use('/api/salaries', salaryRoutes);
 app.use('/api/performance-notes', performanceNoteRoutes);
 app.use('/api/reports', monthlyReportRoutes);
+app.use('/api/system-stats', systemStatsRoutes);
+app.use('/api/system-settings', systemSettingsRoutes);
+app.use('/api/admin-reports', reportsRoutes);
 
 // Test Route
 app.get('/', (req, res) => {

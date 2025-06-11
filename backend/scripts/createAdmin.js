@@ -6,7 +6,7 @@ const Department = require('../models/Department'); // Adjust the path as needed
 dotenv.config();
 
 mongoose
-    .connect("mongodb://127.0.0.1:27017/ALTROHR", {
+    .connect("mongodb://127.0.0.1:27017/ALTROHR-NEW", {
         useNewUrlParser: true,
         useUnifiedTopology: true,
     })

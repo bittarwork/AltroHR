@@ -75,7 +75,30 @@ const DepartmentController = {
                 query.isActive = false;
             }
 
-            const departments = await Department.find(query);
+            // جلب الأقسام مع عدد الموظفين في كل قسم
+            const departments = await Department.aggregate([
+                { $match: query },
+                {
+                    $lookup: {
+                        from: 'users',
+                        localField: '_id',
+                        foreignField: 'department',
+                        as: 'employees'
+                    }
+                },
+                {
+                    $addFields: {
+                        employeeCount: { $size: '$employees' }
+                    }
+                },
+                {
+                    $project: {
+                        employees: 0 // لا نحتاج قائمة الموظفين، فقط العدد
+                    }
+                },
+                { $sort: { createdAt: -1 } }
+            ]);
+
             res.json(departments);
         } catch (err) {
             res.status(500).json({ message: 'Failed to fetch departments', error: err.message });
@@ -88,7 +111,13 @@ const DepartmentController = {
             const department = await Department.findById(req.params.id);
             if (!department) return res.status(404).json({ message: 'Department not found' });
 
-            res.json(department);
+            // جلب عدد الموظفين في هذا القسم
+            const employeeCount = await User.countDocuments({ department: req.params.id });
+
+            res.json({
+                ...department.toObject(),
+                employeeCount
+            });
         } catch (err) {
             res.status(500).json({ message: 'Failed to fetch department', error: err.message });
         }
@@ -101,6 +130,61 @@ const DepartmentController = {
             res.json(users);
         } catch (err) {
             res.status(500).json({ message: 'Failed to fetch department users', error: err.message });
+        }
+    },
+
+    // ✅ جلب إحصائيات الأقسام
+    async getDepartmentStats(req, res) {
+        try {
+            const stats = await Department.aggregate([
+                {
+                    $group: {
+                        _id: null,
+                        totalDepartments: { $sum: 1 },
+                        activeDepartments: {
+                            $sum: { $cond: [{ $eq: ["$isActive", true] }, 1, 0] }
+                        },
+                        inactiveDepartments: {
+                            $sum: { $cond: [{ $eq: ["$isActive", false] }, 1, 0] }
+                        }
+                    }
+                }
+            ]);
+
+            // حساب إجمالي الموظفين في جميع الأقسام
+            const totalEmployees = await User.countDocuments({ department: { $exists: true, $ne: null } });
+
+            // أقسام بدون موظفين
+            const emptyDepartments = await Department.aggregate([
+                {
+                    $lookup: {
+                        from: 'users',
+                        localField: '_id',
+                        foreignField: 'department',
+                        as: 'employees'
+                    }
+                },
+                {
+                    $match: {
+                        employees: { $size: 0 }
+                    }
+                },
+                {
+                    $count: "emptyDepartmentsCount"
+                }
+            ]);
+
+            const result = {
+                totalDepartments: stats[0]?.totalDepartments || 0,
+                activeDepartments: stats[0]?.activeDepartments || 0,
+                inactiveDepartments: stats[0]?.inactiveDepartments || 0,
+                totalEmployees,
+                emptyDepartments: emptyDepartments[0]?.emptyDepartmentsCount || 0
+            };
+
+            res.json(result);
+        } catch (err) {
+            res.status(500).json({ message: 'Failed to fetch department statistics', error: err.message });
         }
     }
 };

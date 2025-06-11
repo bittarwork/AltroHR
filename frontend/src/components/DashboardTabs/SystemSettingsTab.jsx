@@ -1,6 +1,8 @@
 import React, { useState, useEffect } from "react";
 import { useTheme } from "../../contexts/ThemeContext";
+import { useAuth } from "../../contexts/AuthContext";
 import { motion } from "framer-motion";
+import axios from "axios";
 import {
   FiSettings,
   FiSave,
@@ -14,18 +16,25 @@ import {
   FiDownload,
   FiAlertTriangle,
   FiCheck,
+  FiInfo,
+  FiX,
 } from "react-icons/fi";
 
 const SystemSettingsTab = () => {
   const { darkMode } = useTheme();
+  const { user } = useAuth();
+  const token = user?.token;
+
   const [loading, setLoading] = useState(false);
+  const [loadingSettings, setLoadingSettings] = useState(true);
   const [saved, setSaved] = useState(false);
+  const [error, setError] = useState(null);
   const [settings, setSettings] = useState({
     systemName: "AltroHR",
     systemDescription: "نظام إدارة الموارد البشرية الذكي",
     maintenanceMode: false,
     allowRegistration: false,
-    sessionTimeout: 480, // minutes
+    sessionTimeout: 480,
     maxLoginAttempts: 5,
     backupFrequency: "daily",
     emailNotifications: true,
@@ -34,27 +43,148 @@ const SystemSettingsTab = () => {
     timezone: "Asia/Riyadh",
     currency: "SAR",
     dateFormat: "DD/MM/YYYY",
-    companyLogo: null,
+    workingHours: {
+      start: "08:00",
+      end: "17:00",
+    },
   });
 
+  // تحميل الإعدادات عند بدء التشغيل
+  useEffect(() => {
+    loadSettings();
+  }, []);
+
+  const loadSettings = async () => {
+    if (!token) return;
+
+    setLoadingSettings(true);
+    try {
+      const response = await axios.get(
+        `${import.meta.env.VITE_API_URL}/api/system-settings`,
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
+      setSettings(response.data);
+      setError(null);
+    } catch (error) {
+      console.error("خطأ في تحميل الإعدادات:", error);
+      setError("فشل في تحميل الإعدادات");
+    } finally {
+      setLoadingSettings(false);
+    }
+  };
+
   const handleSettingChange = (key, value) => {
-    setSettings((prev) => ({
-      ...prev,
-      [key]: value,
-    }));
+    if (key.includes(".")) {
+      // للحقول المتداخلة مثل workingHours.start
+      const [parent, child] = key.split(".");
+      setSettings((prev) => ({
+        ...prev,
+        [parent]: {
+          ...prev[parent],
+          [child]: value,
+        },
+      }));
+    } else {
+      setSettings((prev) => ({
+        ...prev,
+        [key]: value,
+      }));
+    }
   };
 
   const handleSaveSettings = async () => {
+    if (!token) return;
+
     setLoading(true);
+    setError(null);
+
     try {
-      // Here you would save to API
-      await new Promise((resolve) => setTimeout(resolve, 1000));
+      const response = await axios.put(
+        `${import.meta.env.VITE_API_URL}/api/system-settings`,
+        settings,
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
+
+      setSaved(true);
+      setTimeout(() => setSaved(false), 3000);
+
+      // تحديث الإعدادات بالبيانات المحدثة من الخادم
+      if (response.data.settings) {
+        setSettings(response.data.settings);
+      }
+    } catch (error) {
+      console.error("خطأ في حفظ الإعدادات:", error);
+      setError(error.response?.data?.message || "فشل في حفظ الإعدادات");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleResetSettings = async () => {
+    if (!token) return;
+    if (!window.confirm("هل أنت متأكد من إعادة تعيين جميع الإعدادات؟")) return;
+
+    setLoading(true);
+    setError(null);
+
+    try {
+      const response = await axios.post(
+        `${import.meta.env.VITE_API_URL}/api/system-settings/reset`,
+        {},
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
+
+      setSettings(response.data.settings);
       setSaved(true);
       setTimeout(() => setSaved(false), 3000);
     } catch (error) {
-      console.error("خطأ في حفظ الإعدادات:", error);
+      console.error("خطأ في إعادة تعيين الإعدادات:", error);
+      setError(error.response?.data?.message || "فشل في إعادة تعيين الإعدادات");
     } finally {
       setLoading(false);
+    }
+  };
+
+  const handleExportSettings = async () => {
+    if (!token) return;
+
+    try {
+      const response = await axios.get(
+        `${import.meta.env.VITE_API_URL}/api/system-settings/export`,
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
+
+      // تحميل الملف
+      const blob = new Blob([JSON.stringify(response.data, null, 2)], {
+        type: "application/json",
+      });
+      const url = window.URL.createObjectURL(blob);
+      const link = document.createElement("a");
+      link.href = url;
+      link.download = "system-settings.json";
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      window.URL.revokeObjectURL(url);
+    } catch (error) {
+      console.error("خطأ في تصدير الإعدادات:", error);
+      setError("فشل في تصدير الإعدادات");
     }
   };
 
@@ -129,19 +259,18 @@ const SystemSettingsTab = () => {
       ],
     },
     {
-      title: "إعدادات النسخ الاحتياطي",
-      icon: FiDatabase,
+      title: "إعدادات العمل",
+      icon: FiClock,
       fields: [
         {
-          key: "backupFrequency",
-          label: "تكرار النسخ الاحتياطي",
-          type: "select",
-          options: [
-            { value: "hourly", label: "كل ساعة" },
-            { value: "daily", label: "يومياً" },
-            { value: "weekly", label: "أسبوعياً" },
-            { value: "monthly", label: "شهرياً" },
-          ],
+          key: "workingHours.start",
+          label: "بداية الدوام",
+          type: "time",
+        },
+        {
+          key: "workingHours.end",
+          label: "نهاية الدوام",
+          type: "time",
         },
       ],
     },
@@ -159,90 +288,132 @@ const SystemSettingsTab = () => {
           key: "smsNotifications",
           label: "إشعارات الرسائل النصية",
           type: "toggle",
-          description: "إرسال إشعارات عبر الرسائل النصية",
+          description: "إرسال إشعارات عبر الرسائل النصية (قيد التطوير)",
+          disabled: true,
+          developmentNote: true,
+        },
+      ],
+    },
+    {
+      title: "إعدادات النسخ الاحتياطي",
+      icon: FiDatabase,
+      developmentSection: true,
+      fields: [
+        {
+          key: "backupFrequency",
+          label: "تكرار النسخ الاحتياطي",
+          type: "select",
+          disabled: true,
+          developmentNote: true,
+          options: [
+            { value: "disabled", label: "معطل" },
+            { value: "hourly", label: "كل ساعة" },
+            { value: "daily", label: "يومياً" },
+            { value: "weekly", label: "أسبوعياً" },
+            { value: "monthly", label: "شهرياً" },
+          ],
         },
       ],
     },
   ];
 
   const renderField = (field) => {
+    const getValue = (key) => {
+      if (key.includes(".")) {
+        const [parent, child] = key.split(".");
+        return settings[parent]?.[child] || "";
+      }
+      return settings[key];
+    };
+
+    const fieldProps = {
+      value: getValue(field.key),
+      onChange: (e) => handleSettingChange(field.key, e.target.value),
+      disabled: field.disabled || loading,
+      className: `w-full px-4 py-2 rounded-lg border transition-colors ${
+        field.disabled ? "opacity-50 cursor-not-allowed " : ""
+      }${
+        darkMode
+          ? "bg-gray-700 border-gray-600 text-white placeholder-gray-400 focus:border-blue-500"
+          : "bg-white border-gray-300 text-gray-900 placeholder-gray-500 focus:border-blue-500"
+      } focus:outline-none focus:ring-2 focus:ring-blue-500/20`,
+    };
+
     switch (field.type) {
       case "text":
         return (
-          <input
-            type="text"
-            value={settings[field.key]}
-            onChange={(e) => handleSettingChange(field.key, e.target.value)}
-            placeholder={field.placeholder}
-            className={`w-full px-4 py-2 rounded-lg border transition-colors ${
-              darkMode
-                ? "bg-gray-700 border-gray-600 text-white placeholder-gray-400 focus:border-blue-500"
-                : "bg-white border-gray-300 text-gray-900 placeholder-gray-500 focus:border-blue-500"
-            } focus:outline-none focus:ring-2 focus:ring-blue-500/20`}
-          />
+          <div className="relative">
+            <input
+              type="text"
+              {...fieldProps}
+              placeholder={field.placeholder}
+            />
+            {field.developmentNote && (
+              <span className="absolute left-2 top-2 text-xs text-orange-500 bg-orange-100 px-2 py-1 rounded">
+                قيد التطوير
+              </span>
+            )}
+          </div>
         );
 
       case "textarea":
         return (
-          <textarea
-            value={settings[field.key]}
-            onChange={(e) => handleSettingChange(field.key, e.target.value)}
-            placeholder={field.placeholder}
-            rows={3}
-            className={`w-full px-4 py-2 rounded-lg border transition-colors resize-none ${
-              darkMode
-                ? "bg-gray-700 border-gray-600 text-white placeholder-gray-400 focus:border-blue-500"
-                : "bg-white border-gray-300 text-gray-900 placeholder-gray-500 focus:border-blue-500"
-            } focus:outline-none focus:ring-2 focus:ring-blue-500/20`}
-          />
+          <div className="relative">
+            <textarea
+              {...fieldProps}
+              placeholder={field.placeholder}
+              rows={3}
+              className={fieldProps.className + " resize-none"}
+            />
+          </div>
         );
 
       case "select":
         return (
-          <select
-            value={settings[field.key]}
-            onChange={(e) => handleSettingChange(field.key, e.target.value)}
-            className={`w-full px-4 py-2 rounded-lg border transition-colors ${
-              darkMode
-                ? "bg-gray-700 border-gray-600 text-white focus:border-blue-500"
-                : "bg-white border-gray-300 text-gray-900 focus:border-blue-500"
-            } focus:outline-none focus:ring-2 focus:ring-blue-500/20`}
-          >
-            {field.options.map((option) => (
-              <option key={option.value} value={option.value}>
-                {option.label}
-              </option>
-            ))}
-          </select>
+          <div className="relative">
+            <select {...fieldProps}>
+              {field.options.map((option) => (
+                <option key={option.value} value={option.value}>
+                  {option.label}
+                </option>
+              ))}
+            </select>
+            {field.developmentNote && (
+              <span className="absolute left-2 top-2 text-xs text-orange-500 bg-orange-100 px-2 py-1 rounded">
+                قيد التطوير
+              </span>
+            )}
+          </div>
         );
 
       case "number":
         return (
           <input
             type="number"
-            value={settings[field.key]}
+            {...fieldProps}
             onChange={(e) =>
               handleSettingChange(field.key, parseInt(e.target.value))
             }
             min={field.min}
             max={field.max}
-            className={`w-full px-4 py-2 rounded-lg border transition-colors ${
-              darkMode
-                ? "bg-gray-700 border-gray-600 text-white focus:border-blue-500"
-                : "bg-white border-gray-300 text-gray-900 focus:border-blue-500"
-            } focus:outline-none focus:ring-2 focus:ring-blue-500/20`}
           />
         );
+
+      case "time":
+        return <input type="time" {...fieldProps} />;
 
       case "toggle":
         return (
           <div className="flex items-center space-x-3 space-x-reverse">
             <button
               onClick={() =>
-                handleSettingChange(field.key, !settings[field.key])
+                handleSettingChange(field.key, !getValue(field.key))
               }
+              disabled={field.disabled || loading}
               className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${
-                settings[field.key]
+                field.disabled ? "opacity-50 cursor-not-allowed " : ""
+              }${
+                getValue(field.key)
                   ? "bg-blue-600"
                   : darkMode
                   ? "bg-gray-600"
@@ -251,18 +422,25 @@ const SystemSettingsTab = () => {
             >
               <span
                 className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${
-                  settings[field.key] ? "translate-x-1" : "translate-x-6"
+                  getValue(field.key) ? "translate-x-1" : "translate-x-6"
                 }`}
               />
             </button>
             {field.description && (
-              <span
-                className={`text-sm ${
-                  darkMode ? "text-gray-400" : "text-gray-600"
-                }`}
-              >
-                {field.description}
-              </span>
+              <div className="flex items-center space-x-2 space-x-reverse">
+                <span
+                  className={`text-sm ${
+                    darkMode ? "text-gray-400" : "text-gray-600"
+                  }`}
+                >
+                  {field.description}
+                </span>
+                {field.developmentNote && (
+                  <span className="text-xs text-orange-500 bg-orange-100 px-2 py-1 rounded">
+                    قيد التطوير
+                  </span>
+                )}
+              </div>
             )}
           </div>
         );
@@ -271,6 +449,23 @@ const SystemSettingsTab = () => {
         return null;
     }
   };
+
+  if (loadingSettings) {
+    return (
+      <div
+        className={`p-6 ${
+          darkMode ? "bg-gray-900" : "bg-gray-50"
+        } min-h-screen flex items-center justify-center`}
+      >
+        <div className="text-center">
+          <FiRefreshCw className="animate-spin text-4xl text-blue-500 mx-auto mb-4" />
+          <p className={`text-lg ${darkMode ? "text-white" : "text-gray-900"}`}>
+            جاري تحميل الإعدادات...
+          </p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div
@@ -291,6 +486,26 @@ const SystemSettingsTab = () => {
           </motion.div>
         )}
 
+        {/* Error Message */}
+        {error && (
+          <motion.div
+            initial={{ opacity: 0, y: -20 }}
+            animate={{ opacity: 1, y: 0 }}
+            className="bg-red-100 dark:bg-red-900/20 border border-red-300 dark:border-red-700 rounded-lg p-4 flex items-center justify-between space-x-3 space-x-reverse"
+          >
+            <div className="flex items-center space-x-3 space-x-reverse">
+              <FiX className="text-red-600 dark:text-red-400" />
+              <span className="text-red-800 dark:text-red-200">{error}</span>
+            </div>
+            <button
+              onClick={() => setError(null)}
+              className="text-red-600 hover:text-red-800 dark:text-red-400 dark:hover:text-red-200"
+            >
+              <FiX />
+            </button>
+          </motion.div>
+        )}
+
         {settingSections.map((section, index) => {
           const Icon = section.icon;
           return (
@@ -301,27 +516,50 @@ const SystemSettingsTab = () => {
               transition={{ delay: index * 0.1 }}
               className={`${
                 darkMode ? "bg-gray-800" : "bg-white"
-              } rounded-xl shadow-lg p-6`}
+              } rounded-xl shadow-lg p-6 ${
+                section.developmentSection
+                  ? "border-2 border-orange-200 dark:border-orange-800"
+                  : ""
+              }`}
             >
-              <div className="flex items-center space-x-3 space-x-reverse mb-6">
-                <div
-                  className={`p-2 rounded-lg ${
-                    darkMode ? "bg-gray-700" : "bg-gray-100"
-                  }`}
-                >
-                  <Icon
-                    className={`text-xl ${
-                      darkMode ? "text-blue-400" : "text-blue-600"
+              <div className="flex items-center justify-between mb-6">
+                <div className="flex items-center space-x-3 space-x-reverse">
+                  <div
+                    className={`p-2 rounded-lg ${
+                      section.developmentSection
+                        ? "bg-orange-100 dark:bg-orange-900/20"
+                        : darkMode
+                        ? "bg-gray-700"
+                        : "bg-gray-100"
                     }`}
-                  />
+                  >
+                    <Icon
+                      className={`text-xl ${
+                        section.developmentSection
+                          ? "text-orange-600 dark:text-orange-400"
+                          : darkMode
+                          ? "text-blue-400"
+                          : "text-blue-600"
+                      }`}
+                    />
+                  </div>
+                  <h3
+                    className={`text-xl font-semibold ${
+                      darkMode ? "text-white" : "text-gray-900"
+                    }`}
+                  >
+                    {section.title}
+                  </h3>
                 </div>
-                <h3
-                  className={`text-xl font-semibold ${
-                    darkMode ? "text-white" : "text-gray-900"
-                  }`}
-                >
-                  {section.title}
-                </h3>
+
+                {section.developmentSection && (
+                  <div className="flex items-center space-x-2 space-x-reverse bg-orange-100 dark:bg-orange-900/20 px-3 py-1 rounded-full">
+                    <FiInfo className="text-orange-600 dark:text-orange-400" />
+                    <span className="text-sm text-orange-800 dark:text-orange-200">
+                      جاري التطوير
+                    </span>
+                  </div>
+                )}
               </div>
 
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -363,8 +601,12 @@ const SystemSettingsTab = () => {
             <motion.button
               whileHover={{ scale: 1.05 }}
               whileTap={{ scale: 0.95 }}
+              onClick={handleResetSettings}
+              disabled={loading}
               className={`flex items-center space-x-2 space-x-reverse px-6 py-3 rounded-lg font-medium border transition-colors ${
-                darkMode
+                loading
+                  ? "border-gray-400 text-gray-400 cursor-not-allowed"
+                  : darkMode
                   ? "border-gray-600 text-gray-300 hover:bg-gray-700"
                   : "border-gray-300 text-gray-700 hover:bg-gray-50"
               }`}
@@ -378,20 +620,34 @@ const SystemSettingsTab = () => {
             <motion.button
               whileHover={{ scale: 1.05 }}
               whileTap={{ scale: 0.95 }}
-              className="flex items-center space-x-2 space-x-reverse px-4 py-2 rounded-lg text-sm font-medium bg-green-600 hover:bg-green-700 text-white"
+              onClick={handleExportSettings}
+              disabled={loading}
+              className={`flex items-center space-x-2 space-x-reverse px-4 py-2 rounded-lg text-sm font-medium ${
+                loading
+                  ? "bg-gray-400 cursor-not-allowed"
+                  : "bg-green-600 hover:bg-green-700"
+              } text-white`}
             >
               <FiDownload />
               <span>تصدير الإعدادات</span>
             </motion.button>
 
-            <motion.button
+            <motion.div
               whileHover={{ scale: 1.05 }}
               whileTap={{ scale: 0.95 }}
-              className="flex items-center space-x-2 space-x-reverse px-4 py-2 rounded-lg text-sm font-medium bg-orange-600 hover:bg-orange-700 text-white"
+              className="relative"
             >
-              <FiUpload />
-              <span>استيراد الإعدادات</span>
-            </motion.button>
+              <button
+                disabled={true}
+                className="flex items-center space-x-2 space-x-reverse px-4 py-2 rounded-lg text-sm font-medium bg-gray-400 cursor-not-allowed text-white opacity-50"
+              >
+                <FiUpload />
+                <span>استيراد الإعدادات</span>
+              </button>
+              <span className="absolute -top-8 left-1/2 transform -translate-x-1/2 text-xs text-orange-600 bg-orange-100 px-2 py-1 rounded whitespace-nowrap">
+                قيد التطوير
+              </span>
+            </motion.div>
           </div>
         </div>
 
@@ -418,8 +674,8 @@ const SystemSettingsTab = () => {
                   darkMode ? "text-yellow-300" : "text-yellow-700"
                 }`}
               >
-                تغيير هذه الإعدادات قد يؤثر على أداء النظام. تأكد من فهم تأثير
-                كل إعداد قبل التغيير.
+                تغيير هذه الإعدادات سيؤثر على سلوك النظام فور الحفظ. الإعدادات
+                المميزة بـ "قيد التطوير" ستكون متاحة في الإصدارات القادمة.
               </p>
             </div>
           </div>

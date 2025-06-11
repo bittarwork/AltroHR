@@ -31,7 +31,7 @@ async function getAdminToken() {
         // 🔐 Generate JWT
         const token = jwt.sign(
             { id: admin._id, role: admin.role },
-            process.env.JWT_SECRET,
+            process.env.JWT_SECRET || 'your-secret-key-here-change-in-production',
             { expiresIn: '30d' }
         );
 
@@ -40,10 +40,10 @@ async function getAdminToken() {
             name: admin.name,
             email: admin.email,
             role: admin.role,
-            department: {
+            department: admin.department ? {
                 id: admin.department._id,
                 name: admin.department.name,
-            },
+            } : null,
             token,
         });
 

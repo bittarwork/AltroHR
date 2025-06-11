@@ -10,16 +10,12 @@ import axios from "axios";
 import UsersTab from "../components/DashboardTabs/UsersTab";
 import DepartmentTab from "../components/DashboardTabs/DepartmentTab";
 import SystemSettingsTab from "../components/DashboardTabs/SystemSettingsTab";
-import SystemStatsTab from "../components/DashboardTabs/SystemStatsTab";
-import SecurityTab from "../components/DashboardTabs/SecurityTab";
 import ReportsTab from "../components/DashboardTabs/ReportsTab";
 
 // Icons
 import {
   FiUsers,
   FiSettings,
-  FiShield,
-  FiBarChart2,
   FiFileText,
   FiDatabase,
   FiBell,
@@ -50,22 +46,6 @@ const adminTabs = [
     color: "green",
     component: DepartmentTab,
     description: "إدارة أقسام الشركة والهيكل التنظيمي",
-  },
-  {
-    id: "systemStats",
-    label: "إحصائيات النظام",
-    icon: FiBarChart2,
-    color: "purple",
-    component: SystemStatsTab,
-    description: "مراقبة أداء النظام والإحصائيات العامة",
-  },
-  {
-    id: "security",
-    label: "الأمان والصلاحيات",
-    icon: FiShield,
-    color: "red",
-    component: SecurityTab,
-    description: "إدارة أمان النظام وصلاحيات الوصول",
   },
   {
     id: "systemSettings",
@@ -224,7 +204,7 @@ const AdminDashboard = () => {
                     : "bg-gradient-to-br from-blue-500 to-blue-600"
                 } shadow-lg`}
               >
-                <FiShield className="text-white text-2xl" />
+                <FiSettings className="text-white text-2xl" />
               </div>
               <div>
                 <h1

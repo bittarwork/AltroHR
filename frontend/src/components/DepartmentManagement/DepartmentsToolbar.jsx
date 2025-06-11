@@ -1,14 +1,14 @@
 import React, { useEffect, useState } from "react";
-import { FiSearch } from "react-icons/fi";
-import { FaBuilding } from "react-icons/fa";
+import { motion } from "framer-motion";
+import { FiSearch, FiFilter, FiPlus, FiHome } from "react-icons/fi";
 import { useTheme } from "../../contexts/ThemeContext";
 import CreateDepartmentModal from "../../modals/CreateDepartmentModal";
 
 // ✅ خيارات فلتر الحالة
 const statusOptions = [
-  { value: "", label: "كل الحالات" },
-  { value: "active", label: "✅ فعال" },
-  { value: "inactive", label: "🚫 غير فعال" },
+  { value: "", label: "جميع الحالات", icon: "🔄" },
+  { value: "active", label: "نشط", icon: "✅" },
+  { value: "inactive", label: "غير نشط", icon: "🚫" },
 ];
 
 const DepartmentsToolbar = ({ onSearch, onStatusFilter, onAddDepartment }) => {
@@ -24,76 +24,90 @@ const DepartmentsToolbar = ({ onSearch, onStatusFilter, onAddDepartment }) => {
       onSearch(searchTerm.trim());
     }, 500);
     return () => clearTimeout(delayDebounce);
-  }, [searchTerm]);
-
-  // ✅ تنسيق الإدخال
-  const inputClass = `px-3 py-2 rounded-md border text-sm w-40 
-    ${
-      darkMode
-        ? "bg-gray-800 text-white border-gray-600"
-        : "bg-white text-gray-800 border-gray-300"
-    }`;
+  }, [searchTerm, onSearch]);
 
   return (
-    <section className="w-full flex flex-col md:flex-row md:items-center justify-between gap-4 mb-6">
-      {/* 🔍 الفلاتر */}
-      <div className="flex flex-wrap gap-3 items-center w-full md:w-auto">
-        {/* مربع البحث */}
-        <div className="relative">
-          <FiSearch className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 dark:text-gray-500" />
+    <motion.div
+      initial={{ opacity: 0, y: -10 }}
+      animate={{ opacity: 1, y: 0 }}
+      className="flex flex-col lg:flex-row gap-4 items-start lg:items-center justify-between"
+    >
+      {/* Search and Filter Section */}
+      <div className="flex flex-col sm:flex-row gap-4 items-start sm:items-center flex-1">
+        {/* Search Input */}
+        <div className="relative w-full sm:w-80">
+          <FiSearch
+            className={`absolute left-3 top-1/2 transform -translate-y-1/2 ${
+              darkMode ? "text-gray-400" : "text-gray-500"
+            }`}
+            size={20}
+          />
           <input
             type="text"
-            placeholder="ابحث باسم القسم"
+            placeholder="ابحث عن قسم..."
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
-            className={`pl-10 pr-4 py-2 rounded-md border w-64 shadow-sm transition-all duration-200
-              focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500
-              ${
-                darkMode
-                  ? "bg-gray-800 text-white border-gray-600 placeholder-gray-400"
-                  : "bg-white text-gray-800 border-gray-300 placeholder-gray-500"
-              }`}
+            className={`w-full pl-10 pr-4 py-3 rounded-xl border transition-all duration-200 focus:ring-2 focus:ring-green-500/20 focus:border-green-500 ${
+              darkMode
+                ? "bg-gray-800 border-gray-700 text-white placeholder-gray-400"
+                : "bg-white border-gray-300 text-gray-900 placeholder-gray-500"
+            }`}
           />
         </div>
 
-        {/* فلتر الحالة */}
-        <select
-          className={inputClass}
-          onChange={(e) => {
-            const selected = e.target.value;
-            setSelectedStatus(selected);
-            onStatusFilter(selected);
-          }}
-          value={selectedStatus}
-        >
-          {statusOptions.map((opt) => (
-            <option key={opt.value} value={opt.value}>
-              {opt.label}
-            </option>
-          ))}
-        </select>
+        {/* Status Filter */}
+        <div className="relative w-full sm:w-48">
+          <FiFilter
+            className={`absolute left-3 top-1/2 transform -translate-y-1/2 ${
+              darkMode ? "text-gray-400" : "text-gray-500"
+            }`}
+            size={18}
+          />
+          <select
+            value={selectedStatus}
+            onChange={(e) => {
+              const selected = e.target.value;
+              setSelectedStatus(selected);
+              onStatusFilter(selected);
+            }}
+            className={`w-full pl-10 pr-4 py-3 rounded-xl border transition-all duration-200 focus:ring-2 focus:ring-green-500/20 focus:border-green-500 appearance-none cursor-pointer ${
+              darkMode
+                ? "bg-gray-800 border-gray-700 text-white"
+                : "bg-white border-gray-300 text-gray-900"
+            }`}
+          >
+            {statusOptions.map((option) => (
+              <option key={option.value} value={option.value}>
+                {option.icon} {option.label}
+              </option>
+            ))}
+          </select>
+        </div>
       </div>
 
-      {/* ➕ زر إضافة قسم جديد */}
-      <button
-        onClick={() => setShowAddModal(true)}
-        className="flex items-center justify-center gap-2 bg-indigo-600 hover:bg-indigo-700 
-                   text-white px-5 py-2 rounded-md shadow-sm transition-all duration-200"
-      >
-        <FaBuilding className="text-base" />
-        <span className="hidden sm:inline-block font-medium">إضافة قسم</span>
-      </button>
+      {/* Action Buttons */}
+      <div className="flex gap-3 w-full sm:w-auto">
+        <motion.button
+          whileHover={{ scale: 1.02 }}
+          whileTap={{ scale: 0.98 }}
+          onClick={() => setShowAddModal(true)}
+          className="flex items-center justify-center gap-2 bg-gradient-to-r from-green-600 to-green-700 hover:from-green-700 hover:to-green-800 text-white px-6 py-3 rounded-xl font-medium transition-all duration-200 shadow-lg hover:shadow-xl flex-1 sm:flex-none"
+        >
+          <FiPlus size={20} />
+          <span>إضافة قسم</span>
+        </motion.button>
+      </div>
 
-      {/* نافذة إنشاء القسم */}
+      {/* Add Department Modal */}
       <CreateDepartmentModal
         isOpen={showAddModal}
         onClose={() => setShowAddModal(false)}
         onSuccess={(newDept) => {
-          onAddDepartment(newDept); // نمرر بيانات القسم الجديد
+          onAddDepartment(newDept);
           setShowAddModal(false);
         }}
       />
-    </section>
+    </motion.div>
   );
 };
 

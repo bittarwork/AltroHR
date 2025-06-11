@@ -6,6 +6,9 @@ const auth = require('../middleware/authMiddleware');
 const role = require('../middleware/roleMiddleware');
 const validateObjectId = require('../middleware/validateObjectId');
 
+// ✅ جلب إحصائيات الأقسام
+router.get('/stats', auth, role(['admin', 'hr']), DepartmentController.getDepartmentStats);
+
 // ✅ إنشاء قسم جديد
 router.post('/', auth, role(['admin', 'hr']), DepartmentController.createDepartment);
 
