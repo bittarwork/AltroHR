@@ -473,7 +473,7 @@ const ReportsController = {
             const csv = json2csvParser.parse(csvData);
 
             // إعداد الاستجابة
-            const fileName = `تقرير_الموظفين_${new Date().toISOString().split('T')[0]}.csv`;
+            const fileName = `employees_report_${new Date().toISOString().split('T')[0]}.csv`;
 
             res.setHeader('Content-Type', 'text/csv; charset=utf-8');
             res.setHeader('Content-Disposition', `attachment; filename="${fileName}"`);
@@ -542,7 +542,7 @@ const ReportsController = {
             const csv = json2csvParser.parse(csvData);
 
             // إعداد الاستجابة
-            const fileName = `تقرير_الحضور_${startDate}_إلى_${endDate}.csv`;
+            const fileName = `attendance_report_${startDate}_to_${endDate}.csv`;
 
             res.setHeader('Content-Type', 'text/csv; charset=utf-8');
             res.setHeader('Content-Disposition', `attachment; filename="${fileName}"`);
@@ -616,7 +616,7 @@ const ReportsController = {
             const csv = json2csvParser.parse(csvData);
 
             // إعداد الاستجابة
-            const fileName = `تقرير_الإجازات_${startDate}_إلى_${endDate}.csv`;
+            const fileName = `leaves_report_${startDate}_to_${endDate}.csv`;
 
             res.setHeader('Content-Type', 'text/csv; charset=utf-8');
             res.setHeader('Content-Disposition', `attachment; filename="${fileName}"`);
@@ -679,7 +679,7 @@ const ReportsController = {
             const csv = json2csvParser.parse(departmentStats);
 
             // إعداد الاستجابة
-            const fileName = `تقرير_الأقسام_${new Date().toISOString().split('T')[0]}.csv`;
+            const fileName = `departments_report_${new Date().toISOString().split('T')[0]}.csv`;
 
             res.setHeader('Content-Type', 'text/csv; charset=utf-8');
             res.setHeader('Content-Disposition', `attachment; filename="${fileName}"`);
@@ -756,7 +756,7 @@ const ReportsController = {
                         'العنوان': user.address || 'غير محدد'
                     }));
                     fields = ['الاسم', 'البريد الإلكتروني', 'الهاتف', 'الوظيفة', 'القسم', 'تاريخ التوظيف', 'الحالة', 'العنوان'];
-                    fileName = `تقرير_الموظفين_${report._id}.csv`;
+                    fileName = `employees_report_${report._id}.csv`;
                     break;
 
                 case 'attendance':
@@ -784,7 +784,7 @@ const ReportsController = {
                         'ملاحظات': record.notes || 'لا توجد ملاحظات'
                     }));
                     fields = ['اسم الموظف', 'البريد الإلكتروني', 'القسم', 'التاريخ', 'وقت الحضور', 'وقت الانصراف', 'إجمالي الساعات', 'الحالة', 'ملاحظات'];
-                    fileName = `تقرير_الحضور_${report._id}.csv`;
+                    fileName = `attendance_report_${report._id}.csv`;
                     break;
 
                 case 'leaves':
@@ -818,7 +818,7 @@ const ReportsController = {
                         'ملاحظات': leave.notes || 'لا توجد ملاحظات'
                     }));
                     fields = ['اسم الموظف', 'البريد الإلكتروني', 'القسم', 'نوع الإجازة', 'تاريخ البداية', 'تاريخ النهاية', 'عدد الأيام', 'الحالة', 'سبب الإجازة', 'تاريخ الطلب', 'ملاحظات'];
-                    fileName = `تقرير_الإجازات_${report._id}.csv`;
+                    fileName = `leaves_report_${report._id}.csv`;
                     break;
 
                 case 'departments':
@@ -843,7 +843,7 @@ const ReportsController = {
                         'آخر تحديث': dept.updatedAt ? new Date(dept.updatedAt).toLocaleDateString('ar-SA') : 'غير محدد'
                     }));
                     fields = ['اسم القسم', 'الوصف', 'حالة القسم', 'إجمالي الموظفين', 'الموظفون النشطون', 'الموظفون غير النشطون', 'تاريخ الإنشاء', 'آخر تحديث'];
-                    fileName = `تقرير_الأقسام_${report._id}.csv`;
+                    fileName = `departments_report_${report._id}.csv`;
                     break;
 
                 default:

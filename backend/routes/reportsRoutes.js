@@ -10,8 +10,8 @@ const role = require('../middleware/roleMiddleware');
 // جلب جميع التقارير مع الفلترة
 router.get('/', auth, role(['admin', 'hr']), ReportsController.getAllReports);
 
-// جلب تقرير محدد
-router.get('/:id', auth, role(['admin', 'hr']), ReportsController.getReportById);
+// جلب إحصائيات التقارير (يجب أن يكون قبل /:id)
+router.get('/statistics/overview', auth, role(['admin', 'hr']), ReportsController.getReportsStatistics);
 
 // إنشاء تقرير الموظفين
 router.post('/generate/employees', auth, role(['admin', 'hr']), ReportsController.generateEmployeesReport);
@@ -25,14 +25,14 @@ router.post('/generate/leaves', auth, role(['admin', 'hr']), ReportsController.g
 // إنشاء تقرير الأقسام
 router.post('/generate/departments', auth, role(['admin', 'hr']), ReportsController.generateDepartmentsReport);
 
-// جلب إحصائيات التقارير
-router.get('/statistics/overview', auth, role(['admin', 'hr']), ReportsController.getReportsStatistics);
-
-// تحميل التقارير بصيغة CSV
+// تحميل التقارير بصيغة CSV (يجب أن تكون قبل /:id)
 router.get('/download/employees/csv', auth, role(['admin', 'hr']), ReportsController.downloadEmployeesReportCSV);
 router.get('/download/attendance/csv', auth, role(['admin', 'hr']), ReportsController.downloadAttendanceReportCSV);
 router.get('/download/leaves/csv', auth, role(['admin', 'hr']), ReportsController.downloadLeavesReportCSV);
 router.get('/download/departments/csv', auth, role(['admin', 'hr']), ReportsController.downloadDepartmentsReportCSV);
+
+// جلب تقرير محدد (يجب أن يكون بعد المسارات المحددة)
+router.get('/:id', auth, role(['admin', 'hr']), ReportsController.getReportById);
 
 // تحميل تقرير محدد بصيغة CSV
 router.get('/:id/download/csv', auth, role(['admin', 'hr']), ReportsController.downloadReportCSV);

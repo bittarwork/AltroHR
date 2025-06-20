@@ -15,7 +15,6 @@ import AdminRegisterEmployee from "./pages/auth/AdminRegisterEmployee";
 import AdminDashboard from "./pages/AdminDashboard";
 import EmployeeDashboard from "./pages/EmployeeDashboard";
 import HRDashboard from "./pages/HRDashboard";
-import TechnicianDashboard from "./pages/TechnicianDashboard";
 
 const App = () => {
   const { user } = useAuth();

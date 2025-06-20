@@ -12,6 +12,9 @@ import {
   FiEye,
   FiCalendar,
   FiSettings,
+  FiDownload,
+  FiCheckCircle,
+  FiX,
 } from "react-icons/fi";
 
 const ReportsTab = () => {
@@ -19,8 +22,11 @@ const ReportsTab = () => {
   const { user } = useAuth();
   const [selectedCategory, setSelectedCategory] = useState("employees");
   const [loading, setLoading] = useState(false);
+  const [downloadLoading, setDownloadLoading] = useState(false);
   const [reports, setReports] = useState([]);
   const [reportStats, setReportStats] = useState(null);
+  const [successMessage, setSuccessMessage] = useState(null);
+  const [errorMessage, setErrorMessage] = useState(null);
   const [dateRange, setDateRange] = useState({
     startDate: new Date(Date.now() - 30 * 24 * 60 * 60 * 1000)
       .toISOString()
@@ -51,7 +57,7 @@ const ReportsTab = () => {
     employees: {
       name: "تقرير الموظفين",
       description: "تقرير شامل عن جميع الموظفين بالنظام",
-      endpoint: "/api/admin-reports/generate/employees",
+      endpoint: "/api/reports/generate/employees",
       params: ["startDate", "endDate", "departmentId"],
       formats: ["JSON", "PDF"],
       realTime: true,
@@ -59,7 +65,7 @@ const ReportsTab = () => {
     attendance: {
       name: "تقرير الحضور والانصراف",
       description: "تقرير مفصل عن حضور الموظفين",
-      endpoint: "/api/admin-reports/generate/attendance",
+      endpoint: "/api/reports/generate/attendance",
       params: ["startDate", "endDate", "departmentId"],
       formats: ["JSON", "PDF", "Excel"],
       realTime: true,
@@ -77,7 +83,7 @@ const ReportsTab = () => {
       const response = await axios.get(
         `${
           import.meta.env.VITE_API_URL
-        }/api/admin-reports?category=${selectedCategory}`,
+        }/api/reports?category=${selectedCategory}`,
         {
           headers: { Authorization: `Bearer ${user.token}` },
         }
@@ -98,7 +104,7 @@ const ReportsTab = () => {
 
     try {
       const response = await axios.get(
-        `${import.meta.env.VITE_API_URL}/api/admin-reports/statistics/overview`,
+        `${import.meta.env.VITE_API_URL}/api/reports/statistics/overview`,
         {
           headers: { Authorization: `Bearer ${user.token}` },
         }
@@ -113,7 +119,6 @@ const ReportsTab = () => {
   // إنشاء تقرير جديد
   const generateReport = async (category) => {
     if (!functionalReports[category]) {
-      alert("هذا التقرير قيد التطوير حالياً");
       return;
     }
 
@@ -131,32 +136,141 @@ const ReportsTab = () => {
         }
       );
 
-      alert("تم إنشاء التقرير بنجاح!");
+      // إظهار رسالة نجاح
+      setSuccessMessage("تم إنشاء التقرير بنجاح!");
+      setTimeout(() => setSuccessMessage(null), 3000);
+
+      console.log("تم إنشاء التقرير بنجاح:", response.data);
       loadReports(); // إعادة تحميل التقارير
+
+      // تحميل CSV مباشرة بعد الإنشاء
+      if (response.data.reportId) {
+        setTimeout(() => {
+          downloadReportCSV(category);
+        }, 1000);
+      }
     } catch (error) {
       console.error("فشل في إنشاء التقرير:", error);
-      alert("فشل في إنشاء التقرير");
     } finally {
       setLoading(false);
     }
   };
 
-  // عرض تقرير
-  const viewReport = async (reportId) => {
+  // تحميل التقرير كـ CSV بدلاً من عرضه
+  const downloadReportCSV = async (category) => {
+    setDownloadLoading(true);
+    setErrorMessage(null);
+
     try {
+      let downloadUrl = "";
+      let reportName = "";
+
+      // تحديد الرابط الصحيح للتحميل حسب نوع التقرير
+      switch (category) {
+        case "employees":
+          downloadUrl = "/api/reports/download/employees/csv";
+          reportName = "الموظفين";
+          break;
+        case "attendance":
+          downloadUrl = "/api/reports/download/attendance/csv";
+          reportName = "الحضور";
+          break;
+        default:
+          setErrorMessage("نوع تقرير غير معروف");
+          return;
+      }
+
+      // بناء معاملات الاستعلام
+      const params = new URLSearchParams({
+        startDate: dateRange.startDate,
+        endDate: dateRange.endDate,
+      });
+
+      // تحميل التقرير باستخدام axios للتعامل مع المصادقة
       const response = await axios.get(
-        `${import.meta.env.VITE_API_URL}/api/admin-reports/${reportId}`,
+        `${import.meta.env.VITE_API_URL}${downloadUrl}?${params}`,
         {
           headers: { Authorization: `Bearer ${user.token}` },
+          responseType: "blob", // مهم لتحميل الملفات
         }
       );
 
-      // عرض التقرير في نافذة جديدة أو modal
-      console.log("بيانات التقرير:", response.data);
-      alert("تم تحميل التقرير - راجع console للبيانات");
+      // إنشاء رابط تحميل من البيانات المستلمة
+      const blob = new Blob([response.data], {
+        type: "text/csv;charset=utf-8",
+      });
+      const url = window.URL.createObjectURL(blob);
+      const link = document.createElement("a");
+      link.href = url;
+      link.download = `تقرير_${reportName}_${dateRange.startDate}_الى_${dateRange.endDate}.csv`;
+
+      // تنفيذ التحميل
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      window.URL.revokeObjectURL(url);
+
+      // إظهار رسالة نجاح
+      setSuccessMessage(`تم تحميل تقرير ${reportName} بنجاح!`);
+      setTimeout(() => setSuccessMessage(null), 3000);
     } catch (error) {
-      console.error("فشل في عرض التقرير:", error);
-      alert("فشل في عرض التقرير");
+      console.error("فشل في تحميل التقرير:", error);
+      setErrorMessage(
+        `فشل في تحميل التقرير: ${
+          error.response?.data?.message || error.message
+        }`
+      );
+      setTimeout(() => setErrorMessage(null), 5000);
+    } finally {
+      setDownloadLoading(false);
+    }
+  };
+
+  // عرض تفاصيل التقرير المحفوظ بتحميل CSV
+  const viewReportDetails = async (reportId) => {
+    setDownloadLoading(true);
+    setErrorMessage(null);
+
+    try {
+      console.log("جلب تفاصيل التقرير:", reportId);
+
+      // تحميل التقرير المحفوظ مباشرة كـ CSV
+      const response = await axios.get(
+        `${import.meta.env.VITE_API_URL}/api/reports/${reportId}/download/csv`,
+        {
+          headers: { Authorization: `Bearer ${user.token}` },
+          responseType: "blob",
+        }
+      );
+
+      // إنشاء رابط تحميل من البيانات المستلمة
+      const blob = new Blob([response.data], {
+        type: "text/csv;charset=utf-8",
+      });
+      const url = window.URL.createObjectURL(blob);
+      const link = document.createElement("a");
+      link.href = url;
+      link.download = `saved_report_${reportId}.csv`;
+
+      // تنفيذ التحميل
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      window.URL.revokeObjectURL(url);
+
+      // إظهار رسالة نجاح
+      setSuccessMessage("تم تحميل التقرير المحفوظ بنجاح!");
+      setTimeout(() => setSuccessMessage(null), 3000);
+    } catch (error) {
+      console.error("خطأ في تحميل التقرير المحفوظ:", error);
+      setErrorMessage(
+        `فشل في تحميل التقرير المحفوظ: ${
+          error.response?.data?.message || error.message
+        }`
+      );
+      setTimeout(() => setErrorMessage(null), 5000);
+    } finally {
+      setDownloadLoading(false);
     }
   };
 
@@ -181,9 +295,53 @@ const ReportsTab = () => {
 
   return (
     <div
-      className={`p-6 ${darkMode ? "bg-gray-900" : "bg-gray-50"} min-h-screen`}
+      className={`p-6 ${
+        darkMode ? "bg-gray-900" : "bg-gray-50"
+      } min-h-screen relative`}
     >
+      {/* Loading Overlay */}
+      {(loading || downloadLoading) && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <div className="bg-white dark:bg-gray-800 rounded-lg p-6 flex items-center space-x-4 space-x-reverse">
+            <FiRefreshCw className="animate-spin text-2xl text-blue-500" />
+            <span className="text-lg font-medium text-gray-900 dark:text-white">
+              {loading ? "جاري إنشاء التقرير..." : "جاري تحميل الملف..."}
+            </span>
+          </div>
+        </div>
+      )}
+
       <div className="max-w-7xl mx-auto space-y-6">
+        {/* رسالة النجاح */}
+        {successMessage && (
+          <motion.div
+            initial={{ opacity: 0, y: -20 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -20 }}
+            className="flex items-center space-x-3 space-x-reverse p-4 bg-green-100 dark:bg-green-900/20 border border-green-200 dark:border-green-800 rounded-lg"
+          >
+            <FiCheckCircle className="text-green-600 dark:text-green-400" />
+            <span className="text-green-800 dark:text-green-200 font-medium">
+              {successMessage}
+            </span>
+          </motion.div>
+        )}
+
+        {/* رسالة الخطأ */}
+        {errorMessage && (
+          <motion.div
+            initial={{ opacity: 0, y: -20 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -20 }}
+            className="flex items-center space-x-3 space-x-reverse p-4 bg-red-100 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg"
+          >
+            <FiX className="text-red-600 dark:text-red-400" />
+            <span className="text-red-800 dark:text-red-200 font-medium">
+              {errorMessage}
+            </span>
+          </motion.div>
+        )}
+
         {/* Header */}
         <div className="flex items-center justify-between">
           <div>
@@ -447,16 +605,36 @@ const ReportsTab = () => {
                     </p>
                   </div>
 
-                  <button
-                    onClick={() => generateReport(selectedCategory)}
-                    disabled={loading}
-                    className={`flex items-center space-x-2 space-x-reverse px-6 py-3 rounded-lg font-medium ${
-                      loading ? "opacity-50 cursor-not-allowed" : ""
-                    } bg-blue-600 hover:bg-blue-700 text-white`}
-                  >
-                    <FiBarChart2 className={loading ? "animate-spin" : ""} />
-                    <span>إنشاء التقرير</span>
-                  </button>
+                  <div className="flex items-center space-x-3 space-x-reverse">
+                    <button
+                      onClick={() => downloadReportCSV(selectedCategory)}
+                      disabled={downloadLoading}
+                      className={`flex items-center space-x-2 space-x-reverse px-4 py-2 rounded-lg font-medium ${
+                        downloadLoading ? "opacity-50 cursor-not-allowed" : ""
+                      } bg-green-600 hover:bg-green-700 text-white`}
+                      title="تحميل التقرير مباشرة كـ CSV"
+                    >
+                      <FiDownload
+                        className={downloadLoading ? "animate-spin" : ""}
+                      />
+                      <span>
+                        {downloadLoading ? "جاري التحميل..." : "تحميل CSV"}
+                      </span>
+                    </button>
+
+                    <button
+                      onClick={() => generateReport(selectedCategory)}
+                      disabled={loading || downloadLoading}
+                      className={`flex items-center space-x-2 space-x-reverse px-6 py-3 rounded-lg font-medium ${
+                        loading || downloadLoading
+                          ? "opacity-50 cursor-not-allowed"
+                          : ""
+                      } bg-blue-600 hover:bg-blue-700 text-white`}
+                    >
+                      <FiBarChart2 className={loading ? "animate-spin" : ""} />
+                      <span>{loading ? "جاري الإنشاء..." : "إنشاء وحفظ"}</span>
+                    </button>
+                  </div>
                 </div>
               </div>
 
@@ -539,10 +717,20 @@ const ReportsTab = () => {
                             </span>
 
                             <button
-                              onClick={() => viewReport(report._id)}
-                              className="p-2 rounded-lg bg-blue-600 hover:bg-blue-700 text-white"
+                              onClick={() => viewReportDetails(report._id)}
+                              disabled={downloadLoading}
+                              className={`p-2 rounded-lg ${
+                                downloadLoading
+                                  ? "opacity-50 cursor-not-allowed"
+                                  : ""
+                              } bg-blue-600 hover:bg-blue-700 text-white`}
+                              title="تحميل التقرير كـ CSV"
                             >
-                              <FiEye />
+                              <FiEye
+                                className={
+                                  downloadLoading ? "animate-spin" : ""
+                                }
+                              />
                             </button>
                           </div>
                         </div>

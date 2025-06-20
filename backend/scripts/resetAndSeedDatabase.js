@@ -16,7 +16,7 @@ const SystemSettings = require('../models/SystemSettings');
 // الاتصال بقاعدة البيانات
 const connectDB = async () => {
     try {
-        await mongoose.connect(process.env.MONGODB_URI || 'mongodb://localhost:27017/altrohrs');
+        await mongoose.connect(process.env.MONGODB_URI || 'mongodb://localhost:27017/ALTROHR-NEW');
         console.log('✅ تم الاتصال بقاعدة البيانات بنجاح');
     } catch (error) {
         console.error('❌ خطأ في الاتصال بقاعدة البيانات:', error);
