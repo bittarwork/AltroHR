@@ -29,7 +29,7 @@ const ViewUserDetailsModal = ({ userId, onClose }) => {
     const fetchUser = async () => {
       try {
         const res = await axios.get(
-          `${import.meta.env.VITE_API_URL}/api/user/${userId}`,
+          `${import.meta.env.VITE_API_URL}/api/users/${userId}`,
           {
             headers: {
               Authorization: `Bearer ${authUser.token}`,

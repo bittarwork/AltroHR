@@ -112,7 +112,7 @@ const EditUserModal = ({ userId, isOpen, onClose, onSuccess }) => {
       setLoading(true);
       try {
         const res = await axios.get(
-          `${import.meta.env.VITE_API_URL}/api/user/${userId}`,
+          `${import.meta.env.VITE_API_URL}/api/users/${userId}`,
           {
             headers: { Authorization: `Bearer ${token}` },
           }
@@ -204,7 +204,7 @@ const EditUserModal = ({ userId, isOpen, onClose, onSuccess }) => {
       };
 
       await axios.put(
-        `${import.meta.env.VITE_API_URL}/api/user/${userId}`,
+        `${import.meta.env.VITE_API_URL}/api/users/${userId}`,
         payload,
         {
           headers: { Authorization: `Bearer ${token}` },

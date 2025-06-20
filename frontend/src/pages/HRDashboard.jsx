@@ -123,11 +123,11 @@ const HRDashboard = () => {
         departmentsResponse,
       ] = await Promise.all([
         // Total employees
-        axios.get(`${import.meta.env.VITE_API_URL}/api/user`, {
+        axios.get(`${import.meta.env.VITE_API_URL}/api/users`, {
           headers: { Authorization: `Bearer ${token}` },
         }),
         // Pending leave requests
-        axios.get(`${import.meta.env.VITE_API_URL}/api/leave`, {
+        axios.get(`${import.meta.env.VITE_API_URL}/api/leaves`, {
           headers: { Authorization: `Bearer ${token}` },
         }),
         // Today's attendance summary
@@ -142,7 +142,7 @@ const HRDashboard = () => {
       ]);
 
       const users = usersResponse.data || [];
-      const leaves = leavesResponse.data?.requests || [];
+      const leaves = leavesResponse.data || [];
       const attendance = attendanceResponse.data || [];
       const departments = departmentsResponse.data || [];
 
@@ -551,7 +551,7 @@ const HRDashboard = () => {
               exit={{ opacity: 0, scale: 0.9 }}
               className={`${
                 darkMode ? "bg-gray-800" : "bg-white"
-              } rounded-2xl shadow-lg overflow-hidden`}
+              } relative rounded-2xl shadow-lg overflow-visible min-h-screen`}
             >
               <div className="flex items-center justify-center py-20">
                 <div className="text-center">
@@ -633,7 +633,7 @@ const HRDashboard = () => {
               }}
               className={`${
                 darkMode ? "bg-gray-800" : "bg-white"
-              } rounded-2xl shadow-2xl overflow-hidden backdrop-blur-sm modern-shadow-lg slide-up-enter`}
+              } relative rounded-2xl shadow-2xl overflow-visible min-h-screen backdrop-blur-sm modern-shadow-lg slide-up-enter`}
             >
               {/* Tab Header */}
               <div

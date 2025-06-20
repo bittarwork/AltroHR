@@ -24,7 +24,7 @@ const ConfirmDeleteUserModal = ({ user, onClose, setUsers, showAlert }) => {
     setLoading(true);
     try {
       await axios.delete(
-        `${import.meta.env.VITE_API_URL}/api/user/${user._id}`,
+        `${import.meta.env.VITE_API_URL}/api/users/${user._id}`,
         {
           headers: {
             Authorization: `Bearer ${authUser.token}`,

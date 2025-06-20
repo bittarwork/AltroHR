@@ -131,7 +131,7 @@ const AdminRegisterEmployee = () => {
     try {
       // Here you would make API call to create employee
       const response = await fetch(
-        `${import.meta.env.VITE_API_URL}/api/user/create-employee`,
+        `${import.meta.env.VITE_API_URL}/api/users/create-employee`,
         {
           method: "POST",
           headers: {

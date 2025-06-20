@@ -173,7 +173,7 @@ const AddUserModal = ({ isOpen, onClose, onSuccess }) => {
         hireDate: form.hireDate,
       };
 
-      await axios.post(`${import.meta.env.VITE_API_URL}/api/user`, payload, {
+      await axios.post(`${import.meta.env.VITE_API_URL}/api/users`, payload, {
         headers: { Authorization: `Bearer ${token}` },
       });
 

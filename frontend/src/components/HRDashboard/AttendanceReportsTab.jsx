@@ -245,45 +245,7 @@ const AttendanceReportsTab = () => {
         </div>
       </div>
 
-      {/* Summary Statistics */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6 gap-4">
-        <StatCard
-          title="إجمالي السجلات"
-          value={summary.totalRecords}
-          icon={FiBarChart2}
-          color="blue"
-        />
-        <StatCard
-          title="إجمالي الساعات"
-          value={`${Math.round(summary.totalHours || 0)}h`}
-          icon={FiClock}
-          color="green"
-        />
-        <StatCard
-          title="ساعات إضافية"
-          value={`${Math.round(summary.totalOvertimeHours || 0)}h`}
-          icon={FiTrendingUp}
-          color="orange"
-        />
-        <StatCard
-          title="أيام حضور"
-          value={summary.presentDays}
-          icon={FiUsers}
-          color="emerald"
-        />
-        <StatCard
-          title="حضور جزئي"
-          value={summary.partialDays}
-          icon={FiCalendar}
-          color="yellow"
-        />
-        <StatCard
-          title="أيام غياب"
-          value={summary.absentDays}
-          icon={FiTrendingDown}
-          color="red"
-        />
-      </div>
+      {/* الإحصائيات المجمّعة تم إزالتها حسب الطلب */}
 
       {/* Top Performers */}
       <div

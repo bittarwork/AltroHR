@@ -106,7 +106,7 @@ const AdminDashboard = () => {
 
       // جلب إجمالي عدد المستخدمين
       const usersResponse = await axios.get(
-        `${import.meta.env.VITE_API_URL}/api/user`,
+        `${import.meta.env.VITE_API_URL}/api/users`,
         {
           headers: { Authorization: `Bearer ${token}` },
         }
@@ -490,7 +490,7 @@ const AdminDashboard = () => {
               exit={{ opacity: 0, scale: 0.9 }}
               className={`${
                 darkMode ? "bg-gray-800" : "bg-white"
-              } rounded-2xl shadow-lg overflow-hidden`}
+              } relative rounded-2xl shadow-lg overflow-visible min-h-screen`}
             >
               <div className="flex items-center justify-center py-20">
                 <div className="text-center">
@@ -582,7 +582,7 @@ const AdminDashboard = () => {
               }}
               className={`${
                 darkMode ? "bg-gray-800" : "bg-white"
-              } rounded-2xl shadow-2xl overflow-hidden backdrop-blur-sm modern-shadow-lg slide-up-enter`}
+              } relative rounded-2xl shadow-2xl overflow-visible min-h-screen backdrop-blur-sm modern-shadow-lg slide-up-enter`}
             >
               {/* Tab Header محسن */}
               <div

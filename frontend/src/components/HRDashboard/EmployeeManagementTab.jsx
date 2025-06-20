@@ -61,7 +61,7 @@ const EmployeeManagementTab = ({ onStatsUpdate }) => {
       if (!token) return;
 
       const response = await axios.get(
-        `${import.meta.env.VITE_API_URL}/api/user`,
+        `${import.meta.env.VITE_API_URL}/api/users`,
         {
           headers: { Authorization: `Bearer ${token}` },
         }
@@ -113,7 +113,7 @@ const EmployeeManagementTab = ({ onStatsUpdate }) => {
       if (!token) return;
 
       await axios.put(
-        `${import.meta.env.VITE_API_URL}/api/user/${employeeId}/toggle-active`,
+        `${import.meta.env.VITE_API_URL}/api/users/${employeeId}/toggle-active`,
         {},
         {
           headers: { Authorization: `Bearer ${token}` },

@@ -108,7 +108,7 @@ const DepartmentManagementTab = ({ onStatsUpdate }) => {
         </div>
         <button
           onClick={() => setShowCreateModal(true)}
-          className="flex items-center gap-2 px-4 py-2 bg-green-600 hover:bg-green-700 text-white rounded-lg font-medium transition-colors"
+          className="flex items-center gap-2 px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white rounded-lg font-medium transition-colors"
         >
           <FiPlus />
           إضافة قسم جديد
@@ -138,14 +138,14 @@ const DepartmentManagementTab = ({ onStatsUpdate }) => {
                 darkMode
                   ? "bg-gray-600 border-gray-500 text-white"
                   : "bg-white border-gray-300 text-gray-900"
-              } focus:ring-2 focus:ring-green-500 focus:border-transparent`}
+              } focus:ring-2 focus:ring-indigo-500 focus:border-transparent`}
             />
           </div>
 
           {/* Refresh Button */}
           <button
             onClick={loadDepartments}
-            className="flex items-center justify-center gap-2 px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg font-medium transition-colors"
+            className="flex items-center justify-center gap-2 px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white rounded-lg font-medium transition-colors"
           >
             <FiRefreshCw className={loading ? "animate-spin" : ""} />
             تحديث
@@ -156,7 +156,7 @@ const DepartmentManagementTab = ({ onStatsUpdate }) => {
       {/* Departments Grid */}
       {loading ? (
         <div className="flex justify-center items-center py-20">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-green-600"></div>
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-indigo-600"></div>
         </div>
       ) : currentDepartments.length === 0 ? (
         <div className="text-center py-20">
@@ -197,13 +197,13 @@ const DepartmentManagementTab = ({ onStatsUpdate }) => {
               {/* Header */}
               <div className="p-6 pb-4">
                 <div className="flex items-center justify-between mb-4">
-                  <div className="p-3 rounded-xl bg-green-100 dark:bg-green-900/30 group-hover:scale-110 transition-transform">
-                    <FiHome className="w-6 h-6 text-green-600 dark:text-green-400" />
+                  <div className="p-3 rounded-xl bg-indigo-100 dark:bg-indigo-900/30 group-hover:scale-110 transition-transform">
+                    <FiHome className="w-6 h-6 text-indigo-600 dark:text-indigo-400" />
                   </div>
                   <div className="flex items-center space-x-1 space-x-reverse">
                     <button
                       onClick={() => handleViewDepartment(department)}
-                      className="p-2 rounded-lg bg-blue-100 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400 hover:bg-blue-200 dark:hover:bg-blue-900/50 transition-colors"
+                      className="p-2 rounded-lg bg-indigo-100 dark:bg-indigo-900/30 text-indigo-600 dark:text-indigo-400 hover:bg-indigo-200 dark:hover:bg-indigo-900/50 transition-colors"
                       title="عرض التفاصيل"
                     >
                       <FiEye size={16} />
@@ -313,7 +313,7 @@ const DepartmentManagementTab = ({ onStatsUpdate }) => {
               className={`px-4 py-2 rounded-lg font-medium transition-colors ${
                 currentPage === 1
                   ? "bg-gray-200 dark:bg-gray-700 text-gray-400 dark:text-gray-500 cursor-not-allowed"
-                  : "bg-blue-600 hover:bg-blue-700 text-white"
+                  : "bg-indigo-600 hover:bg-indigo-700 text-white"
               }`}
             >
               السابق
@@ -327,7 +327,7 @@ const DepartmentManagementTab = ({ onStatsUpdate }) => {
                     onClick={() => setCurrentPage(page)}
                     className={`w-10 h-10 rounded-lg font-medium transition-colors ${
                       currentPage === page
-                        ? "bg-green-600 text-white"
+                        ? "bg-indigo-600 text-white"
                         : darkMode
                         ? "bg-gray-700 text-gray-300 hover:bg-gray-600"
                         : "bg-gray-200 text-gray-700 hover:bg-gray-300"
@@ -345,7 +345,7 @@ const DepartmentManagementTab = ({ onStatsUpdate }) => {
               className={`px-4 py-2 rounded-lg font-medium transition-colors ${
                 currentPage === totalPages
                   ? "bg-gray-200 dark:bg-gray-700 text-gray-400 dark:text-gray-500 cursor-not-allowed"
-                  : "bg-blue-600 hover:bg-blue-700 text-white"
+                  : "bg-indigo-600 hover:bg-indigo-700 text-white"
               }`}
             >
               التالي

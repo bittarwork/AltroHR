@@ -44,7 +44,7 @@ const UsersTable = ({ filters, reloadTrigger }) => {
   const onToggleActive = async (userId, currentStatus) => {
     try {
       const res = await axios.patch(
-        `${import.meta.env.VITE_API_URL}/api/user/${userId}/toggle`,
+        `${import.meta.env.VITE_API_URL}/api/users/${userId}/toggle`,
         {},
         {
           headers: {
@@ -71,7 +71,7 @@ const UsersTable = ({ filters, reloadTrigger }) => {
       setLoading(true);
       try {
         const res = await axios.get(
-          `${import.meta.env.VITE_API_URL}/api/user?${buildQuery()}`,
+          `${import.meta.env.VITE_API_URL}/api/users?${buildQuery()}`,
           {
             headers: {
               Authorization: `Bearer ${token}`,

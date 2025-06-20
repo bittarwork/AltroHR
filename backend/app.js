@@ -33,15 +33,15 @@ app.use(registrationPolicy); // التحقق من سياسة التسجيل
 
 // API Routes
 app.use('/api/departments', departmentRoutes);
-app.use('/api/user/', userRoutes);
+app.use('/api/users', userRoutes);
 app.use('/api/attendance', attendanceRoutes);
 app.use('/api/leaves', leaveRoutes);
 app.use('/api/salaries', salaryRoutes);
 app.use('/api/performance-notes', performanceNoteRoutes);
-app.use('/api/reports', monthlyReportRoutes);
+app.use('/api/monthly-reports', monthlyReportRoutes);
 app.use('/api/system-stats', systemStatsRoutes);
 app.use('/api/system-settings', systemSettingsRoutes);
-app.use('/api/admin-reports', reportsRoutes);
+app.use('/api/reports', reportsRoutes);
 
 // Test Route
 app.get('/', (req, res) => {
