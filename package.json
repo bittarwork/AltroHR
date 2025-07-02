@@ -1,0 +1,31 @@
+{
+  "name": "altrohrs-setup",
+  "version": "1.0.0",
+  "description": "AltroHR Project Setup Scripts",
+  "main": "setup.js",
+  "scripts": {
+    "setup": "node setup.js",
+    "quick-setup": "node quick-setup.js",
+    "create-accounts": "node runCreateAccounts.js",
+    "start": "node setup.js",
+    "dev": "npm run setup",
+    "help": "cat SETUP_GUIDE.md"
+  },
+  "bin": {
+    "altrohrs-setup": "./setup.js",
+    "altrohrs-quick": "./quick-setup.js"
+  },
+  "keywords": [
+    "hr",
+    "management",
+    "system",
+    "setup",
+    "automation"
+  ],
+  "author": "AltroHR Team",
+  "license": "MIT",
+  "engines": {
+    "node": ">=18.0.0",
+    "npm": ">=8.0.0"
+  }
+}

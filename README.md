@@ -243,6 +243,69 @@ npm start
 
 ---
 
+## 🚀 **Automated Setup Script**
+
+AltroHR includes intelligent setup scripts that automatically configure your entire development environment!
+
+### **🎯 Full Interactive Setup**
+
+```bash
+# Run the comprehensive setup wizard
+node setup.js
+```
+
+**Features:**
+
+- ✅ System requirements verification
+- ✅ Interactive configuration prompts
+- ✅ Secure environment file generation
+- ✅ Automatic dependency installation
+- ✅ Database initialization with admin user
+- ✅ Sample data seeding (optional)
+- ✅ Development startup scripts creation
+
+### **⚡ Quick Setup (No Questions)**
+
+```bash
+# Instant setup with default configurations
+node quick-setup.js
+```
+
+**Features:**
+
+- ✅ Default environment configuration
+- ✅ Silent dependency installation
+- ✅ Basic startup scripts creation
+- ✅ Ready to run in under 2 minutes
+
+### **📋 NPM Script Alternatives**
+
+```bash
+npm run setup        # Full interactive setup
+npm run quick-setup  # Quick setup with defaults
+npm start           # Same as npm run setup
+npm run help        # View setup documentation
+```
+
+### **🎨 Beautiful CLI Interface**
+
+The setup scripts feature:
+
+- 🌈 **Colorful terminal output** with progress indicators
+- 🎯 **Interactive prompts** for custom configuration
+- 📊 **Progress bars** for long-running operations
+- ✨ **Success/error indicators** with helpful messages
+- 🛠️ **Automatic error recovery** and retry mechanisms
+
+### **📚 Setup Documentation**
+
+For detailed setup instructions and troubleshooting:
+
+- 📖 [Complete Setup Guide](SETUP_GUIDE.md)
+- ⚡ [Quick Start Guide](quick-start.md)
+
+---
+
 ## 📁 **Project Structure**
 
 ```
@@ -518,40 +581,78 @@ npm run lint         # Run ESLint
 
 ---
 
-## 🤝 **Contributing**
+## 👨‍💻 **Developer & Contact Information**
 
-We welcome contributions to AltroHR! Please follow these guidelines:
+**Osama Bittar**  
+_Software Engineer_
 
-### **Getting Started**
+- 📧 **Email**: bittar.work@gmail.com
+- 📱 **Phone**: +963 930 705 788
+- 💼 **LinkedIn**: [Connect with me](https://linkedin.com/in/osamabittar)
+- 🐙 **GitHub**: [Follow my work](https://github.com/osamabittar)
 
-1. Fork the repository
-2. Create a feature branch (`git checkout -b feature/amazing-feature`)
-3. Commit your changes (`git commit -m 'Add amazing feature'`)
-4. Push to the branch (`git push origin feature/amazing-feature`)
-5. Open a Pull Request
-
-### **Code Standards**
-
-- Follow ESLint configuration
-- Write meaningful commit messages
-- Add tests for new features
-- Update documentation as needed
-
-### **Pull Request Process**
-
-1. Update README.md if needed
-2. Update version numbers following SemVer
-3. Add tests for new functionality
-4. Ensure all tests pass
+> _"Developing efficient HR management solutions with modern web technologies"_
 
 ---
 
-## 📞 **Support & Documentation**
+## 🤝 **Contributing**
 
-- **GitHub Issues** - Bug reports and feature requests
-- **Documentation** - Comprehensive guides and API docs
-- **Community** - Join our developer community
-- **Email Support** - contact@altrohrs.com
+Contributions to AltroHR are welcome! Please follow these guidelines:
+
+### **Getting Started**
+
+1. **Setup the project** using the automated script: `node setup.js`
+2. **Fork the repository** to your GitHub account
+3. **Create a feature branch** (`git checkout -b feature/amazing-feature`)
+4. **Make your changes** and test thoroughly
+5. **Commit your changes** (`git commit -m 'Add amazing feature'`)
+6. **Push to the branch** (`git push origin feature/amazing-feature`)
+7. **Open a Pull Request** with detailed description
+
+### **Code Standards**
+
+- Follow the existing code style and ESLint configuration
+- Write meaningful and descriptive commit messages
+- Add comprehensive tests for new features
+- Update documentation and README as needed
+- Ensure all existing tests continue to pass
+
+### **Pull Request Process**
+
+1. **Update README.md** if your changes affect setup or usage
+2. **Update version numbers** following Semantic Versioning (SemVer)
+3. **Add or update tests** for new functionality
+4. **Ensure all tests pass** before submitting
+5. **Provide clear description** of changes and their purpose
+
+---
+
+## 📞 **Support & Contact**
+
+### **Direct Contact**
+
+- 📧 **Email**: bittar.work@gmail.com
+- 📱 **Phone**: +963 930 705 788
+
+### **Getting Help**
+
+1. **Check Documentation**: Review [Setup Guide](SETUP_GUIDE.md) and [Quick Start](quick-start.md)
+2. **Search Issues**: Look through existing GitHub issues
+3. **Create New Issue**: Report bugs or request features
+4. **Direct Contact**: Reach out using the contact information above
+
+### **Professional Services Available**
+
+- 🔧 **Custom Development** - Tailored HR system modifications
+- 🔗 **System Integration** - Connect with existing business systems
+- 📚 **Training & Consultation** - Team training and system optimization
+- 🛠️ **Technical Support** - Ongoing maintenance and support
+
+### **Response Times**
+
+- **Critical Issues**: Within 24 hours
+- **General Inquiries**: Within 48 hours
+- **Feature Requests**: Within 1 week
 
 ---
 
@@ -587,7 +688,7 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 ```
 MIT License
 
-Copyright (c) 2024 AltroHR Team
+Copyright (c) 2024 Osama Bittar
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
@@ -612,27 +713,36 @@ SOFTWARE.
 
 ## 🙏 **Acknowledgments**
 
-- **MongoDB** - For the robust database solution
-- **React Team** - For the amazing frontend framework
-- **Express.js** - For the minimal web framework
+Special thanks to the amazing open-source community and the following technologies that made this project possible:
+
+- **MongoDB** - For providing a robust and scalable database solution
+- **React Team** - For the powerful and flexible frontend framework
+- **Express.js** - For the minimal and fast web framework
 - **Tailwind CSS** - For the utility-first CSS framework
-- **All Contributors** - Who helped make this project possible
+- **Node.js Community** - For the extensive ecosystem of packages
+- **All Open Source Contributors** - Who make development faster and better
+
+> _Built with passion and dedication by **Osama Bittar** - Software Engineer_
 
 ---
 
 ## 📊 **Project Statistics**
 
-![GitHub repo size](https://img.shields.io/github/repo-size/your-username/AltroHR)
-![GitHub language count](https://img.shields.io/github/languages/count/your-username/AltroHR)
-![GitHub top language](https://img.shields.io/github/languages/top/your-username/AltroHR)
-![GitHub last commit](https://img.shields.io/github/last-commit/your-username/AltroHR)
+![GitHub repo size](https://img.shields.io/github/repo-size/osamabittar/AltroHR)
+![GitHub language count](https://img.shields.io/github/languages/count/osamabittar/AltroHR)
+![GitHub top language](https://img.shields.io/github/languages/top/osamabittar/AltroHR)
+![GitHub last commit](https://img.shields.io/github/last-commit/osamabittar/AltroHR)
 
 ---
 
 <div align="center">
 
-**Made with ❤️ by the AltroHR Team**
+**💻 Developed with ❤️ by Osama Bittar**
 
-[Website](https://altrohrs.com) • [Documentation](https://docs.altrohrs.com) • [Support](mailto:support@altrohrs.com)
+**Software Engineer | HR Solutions Developer**
+
+📧 [bittar.work@gmail.com](mailto:bittar.work@gmail.com) • 📱 +963 930 705 788
+
+_"Empowering organizations with efficient HR management solutions"_
 
 </div>
